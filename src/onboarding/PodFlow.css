@@ -1,0 +1,1255 @@
+@media (prefers-reduced-motion: reduce) {
+  .podflow *,
+  .podwiz *,
+  .joinpod * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.podflow {
+  min-height: 100vh;
+  position: relative;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.podflow__bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(800px 500px at 12% 0%, rgba(94, 234, 212, 0.12), transparent 55%),
+    radial-gradient(700px 480px at 92% 8%, rgba(129, 140, 248, 0.12), transparent 50%),
+    linear-gradient(180deg, #0b0f1c 0%, #070a12 50%, #05060c 100%);
+}
+
+.podflow__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
+  animation: podflow-drift 90s linear infinite;
+}
+
+@keyframes podflow-drift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-28px, -28px);
+  }
+}
+
+.podflow__header {
+  position: relative;
+  z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 20px 22px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.podflow__header-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.podflow__db {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.podflow__db--pending {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.podflow__db--ok {
+  color: rgba(167, 243, 208, 0.95);
+  border-color: rgba(134, 239, 172, 0.35);
+  background: rgba(134, 239, 172, 0.08);
+}
+
+.podflow__db--err {
+  color: #fecaca;
+  border-color: rgba(251, 113, 133, 0.4);
+  background: rgba(251, 113, 133, 0.1);
+}
+
+.podflow__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  color: #f4f7ff;
+  letter-spacing: -0.03em;
+}
+
+.podflow__mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(94, 234, 212, 0.95), rgba(129, 140, 248, 0.85));
+  box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.35);
+}
+
+.podflow__signout {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 9px 14px;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.podflow__signout:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.podflow__main {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 22px 64px;
+}
+
+.podflow__enter {
+  animation: podflow-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes podflow-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.podflow__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(94, 234, 212, 0.95);
+  margin: 0 0 12px;
+}
+
+.podflow__eyebrow--pulse {
+  animation: podflow-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes podflow-glow {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 18px rgba(94, 234, 212, 0.35);
+  }
+}
+
+.podflow__title {
+  margin: 0 0 12px;
+  font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  letter-spacing: -0.035em;
+  color: #f4f7ff;
+}
+
+.podflow__subtitle {
+  margin: 0 0 28px;
+  max-width: 56ch;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 1.02rem;
+}
+
+.podflow__resume {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  background: linear-gradient(
+    125deg,
+    rgba(94, 234, 212, 0.1),
+    rgba(0, 0, 0, 0.25)
+  );
+}
+
+.podflow__resume-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  max-width: 52ch;
+}
+
+.podflow__resume-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(94, 234, 212, 0.9);
+}
+
+.podflow__resume-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #f4f7ff;
+  letter-spacing: -0.02em;
+}
+
+.podflow__resume-hint {
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.podflow__choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 760px) {
+  .podflow__choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.podflow__choice {
+  position: relative;
+  text-align: left;
+  padding: 26px 22px 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.podflow__choice::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  background: linear-gradient(
+    135deg,
+    rgba(94, 234, 212, 0.12),
+    rgba(129, 140, 248, 0.08)
+  );
+}
+
+.podflow__choice:hover {
+  transform: translateY(-4px);
+  border-color: rgba(94, 234, 212, 0.35);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.4);
+}
+
+.podflow__choice:hover::before {
+  opacity: 1;
+}
+
+.podflow__choice:active {
+  transform: translateY(-1px);
+}
+
+.podflow__choice-icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  font-size: 1.25rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.podflow__choice--create .podflow__choice-icon {
+  border-color: rgba(94, 234, 212, 0.35);
+}
+
+.podflow__choice--join .podflow__choice-icon {
+  border-color: rgba(165, 180, 252, 0.4);
+}
+
+.podflow__choice-kicker {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 6px;
+}
+
+.podflow__choice-label {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f4f7ff;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+
+.podflow__choice-desc {
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 16px;
+}
+
+.podflow__choice-cta {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: rgba(94, 234, 212, 0.95);
+}
+
+/* Wizard */
+.podwiz {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.podwiz__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 22px;
+}
+
+.podwiz__back {
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.podwiz__back:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.podwiz__progress {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.podwiz__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.podwiz__dot.is-done {
+  background: rgba(94, 234, 212, 0.55);
+}
+
+.podwiz__dot.is-active {
+  background: linear-gradient(135deg, #5eead4, #2dd4bf);
+  transform: scale(1.25);
+}
+
+.podwiz__step-label {
+  width: 100%;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.podwiz__panel {
+  padding: 8px 4px 12px;
+}
+
+.podwiz__panel--enter {
+  animation: podflow-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.podwiz__head {
+  margin-bottom: 22px;
+}
+
+.podwiz__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(94, 234, 212, 0.9);
+  margin: 0 0 10px;
+}
+
+.podwiz__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
+  color: #f4f7ff;
+  letter-spacing: -0.03em;
+}
+
+.podwiz__lede {
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.podwiz__type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 720px) {
+  .podwiz__type-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.podwiz__type-card {
+  position: relative;
+  text-align: left;
+  padding: 20px 18px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.podwiz__type-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(94, 234, 212, 0.28);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.podwiz__type-card.is-selected {
+  border-color: rgba(94, 234, 212, 0.55);
+  box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.25), 0 24px 60px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(
+    155deg,
+    rgba(94, 234, 212, 0.1),
+    rgba(0, 0, 0, 0.28)
+  );
+}
+
+.podwiz__badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(94, 234, 212, 0.18);
+  border: 1px solid rgba(94, 234, 212, 0.35);
+  color: rgba(167, 243, 208, 0.98);
+}
+
+.podwiz__type-emoji {
+  font-size: 1.75rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.podwiz__type-title {
+  display: block;
+  font-weight: 700;
+  font-size: 1.08rem;
+  color: #f4f7ff;
+  margin-bottom: 4px;
+}
+
+.podwiz__type-tag {
+  display: block;
+  font-size: 0.88rem;
+  color: rgba(94, 234, 212, 0.88);
+  margin-bottom: 8px;
+}
+
+.podwiz__type-detail {
+  display: block;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.podwiz__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.podwiz__btn {
+  font: inherit;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease, background 0.15s ease;
+}
+
+.podwiz__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.podwiz__btn--primary {
+  color: #04120f;
+  background: linear-gradient(135deg, #5eead4, #2dd4bf);
+  box-shadow: 0 16px 44px rgba(45, 212, 191, 0.22);
+}
+
+.podwiz__btn--primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.podwiz__btn--ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.podwiz__btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.podwiz__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.podwiz__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.podwiz__field span:first-child {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.podwiz__field input,
+.podwiz__field select {
+  font: inherit;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: #f4f7ff;
+  outline: none;
+}
+
+.podwiz__field input:focus,
+.podwiz__field select:focus {
+  border-color: rgba(94, 234, 212, 0.55);
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
+}
+
+.podwiz__field--inline select {
+  max-width: 320px;
+}
+
+.podwiz__hint {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.podwiz__stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.podwiz__stepper-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f7ff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.podwiz__stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.podwiz__stepper-out {
+  min-width: 48px;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  color: #f4f7ff;
+}
+
+.podwiz__split-explainer {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(94, 234, 212, 0.25);
+  background: rgba(94, 234, 212, 0.06);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.podwiz__split-explainer strong {
+  color: rgba(167, 243, 208, 0.98);
+}
+
+.podwiz__callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.podwiz__callout--soft {
+  background: rgba(129, 140, 248, 0.08);
+  border-color: rgba(165, 180, 252, 0.22);
+}
+
+.podwiz__callout-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 800;
+  color: rgba(167, 243, 208, 0.98);
+}
+
+.podwiz__callout-title {
+  margin: 0 0 6px;
+  font-weight: 700;
+  color: #f4f7ff;
+  font-size: 0.98rem;
+}
+
+.podwiz__callout-text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.podwiz__summary-card {
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+  margin-bottom: 16px;
+}
+
+.podwiz__summary-card > div {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.podwiz__summary-emoji {
+  font-size: 2rem;
+}
+
+.podwiz__summary-name {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: #f4f7ff;
+}
+
+.podwiz__summary-meta {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.podwiz__subhead {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: #f4f7ff;
+}
+
+.podwiz__micro {
+  margin: 0 0 12px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.podwiz__preset-cats {
+  margin-bottom: 14px;
+}
+
+.podwiz__chip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.podwiz__chip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.podwiz__chip-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2dd4bf;
+}
+
+.podwiz__chip-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #f4f7ff;
+  font: inherit;
+  font-weight: 600;
+  outline: none;
+}
+
+.podwiz__chip-remove {
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.podwiz__chip-remove:hover {
+  background: rgba(251, 113, 133, 0.2);
+  color: #fecaca;
+}
+
+.podwiz__linkish {
+  margin-top: 6px;
+  border: none;
+  background: none;
+  color: rgba(94, 234, 212, 0.95);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.podwiz__custom-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f7ff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.podwiz__custom-toggle:hover {
+  border-color: rgba(94, 234, 212, 0.28);
+  background: rgba(94, 234, 212, 0.06);
+}
+
+.podwiz__custom-toggle.is-open .podwiz__chev {
+  transform: rotate(180deg);
+}
+
+.podwiz__chev {
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.podwiz__custom-panel {
+  padding: 0 4px 8px;
+  animation: podflow-rise 0.35s ease both;
+}
+
+.podwiz__panel--sub {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  margin-bottom: 18px;
+}
+
+.podwiz__checklist {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.podwiz__checklist li {
+  margin-bottom: 8px;
+}
+
+/* Success + join */
+.podflow__success {
+  max-width: 560px;
+}
+
+.podflow__code-card {
+  padding: 20px 20px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(94, 234, 212, 0.25);
+  background: linear-gradient(
+    145deg,
+    rgba(94, 234, 212, 0.1),
+    rgba(0, 0, 0, 0.25)
+  );
+  margin: 22px 0;
+}
+
+.podflow__code-label {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.podflow__code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.podflow__code {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(167, 243, 208, 0.98);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.podflow__code-hint {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.podflow__recap {
+  margin: 18px 0 22px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.podflow__recap-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+}
+
+.podflow__recap-row:last-child {
+  border-bottom: none;
+}
+
+.podflow__recap-k {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.joinpod {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.joinpod__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.joinpod__err {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #fecaca;
+}
+
+.joinpod__submit {
+  align-self: flex-start;
+}
+
+/* Pod home dashboard (invite + overview teaser) */
+.poddash {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.poddash__template-note {
+  margin: 0 0 16px;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.poddash__banner {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(94, 234, 212, 0.35);
+  background: linear-gradient(
+    120deg,
+    rgba(94, 234, 212, 0.12),
+    rgba(129, 140, 248, 0.08)
+  );
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(230, 253, 245, 0.95);
+  animation: podflow-rise 0.5s ease both;
+}
+
+.poddash__overview-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 560px) {
+  .poddash__overview-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.poddash__stat {
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.poddash__stat-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 8px;
+}
+
+.poddash__stat-value {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #f4f7ff;
+  letter-spacing: -0.02em;
+}
+
+.poddash__stat-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.poddash__invite {
+  margin-bottom: 18px;
+}
+
+.poddash__invite-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.poddash__invite-sub {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.52);
+  max-width: 42ch;
+}
+
+.poddash__email-details {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.poddash__email-summary {
+  list-style: none;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.poddash__email-summary::-webkit-details-marker {
+  display: none;
+}
+
+.poddash__email-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.poddash__email-body {
+  padding: 0 18px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.poddash__email-lede {
+  margin: 14px 0 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.poddash__textarea {
+  font: inherit;
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.35);
+  resize: vertical;
+  min-height: 96px;
+  margin-bottom: 12px;
+}
+
+.poddash__footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.poddash__placeholder {
+  margin-bottom: 22px;
+  padding: 20px 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.poddash__placeholder-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 8px;
+}
+
+.poddash__placeholder-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* —— Responsive: tablets & phones —— */
+@media (max-width: 1024px) {
+  .podflow__main {
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 768px) {
+  .podflow__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+
+  .podflow__brand {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .podflow__header-right {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .podflow__signout {
+    min-height: 44px;
+    padding-inline: 16px;
+  }
+
+  .podflow__subtitle {
+    font-size: 0.98rem;
+    max-width: none;
+  }
+
+  .podflow__resume {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .podflow__resume-copy {
+    max-width: none;
+    text-align: center;
+  }
+
+  .podwiz__nav {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .podwiz__nav .podwiz__btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+  }
+
+  .podflow__code {
+    font-size: clamp(1.15rem, 5vw, 1.65rem);
+    word-break: break-all;
+  }
+
+  .podflow__code-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .podflow__recap-row {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .podflow__main {
+    padding: 20px max(12px, env(safe-area-inset-left)) 48px max(12px, env(safe-area-inset-right));
+  }
+
+  .podflow__title {
+    font-size: clamp(1.35rem, 6.5vw, 2rem);
+  }
+
+  .podflow__choice {
+    padding: 22px 16px 18px;
+  }
+
+  .podwiz__type-card {
+    padding: 16px 14px;
+  }
+
+  .podwiz__stepper-out {
+    min-width: 56px;
+  }
+
+  .joinpod__form {
+    width: 100%;
+  }
+}

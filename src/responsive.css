@@ -1,0 +1,73 @@
+/**
+ * Global responsive behavior — phones, tablets, notched devices.
+ */
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+  margin: 0;
+  /* Safe area for notched phones / home indicators */
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+#root {
+  overflow-x: clip;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Let main layout columns shrink inside the viewport */
+:where(
+    .home__main,
+    .home__hero,
+    .home__strip,
+    .podflow__main,
+    .podflow__header,
+    .podflow__choice-grid,
+    .podflow__resume,
+    .gdemo,
+    .gdemo__grid,
+    .gdemo__col,
+    .gdemo__toolbar,
+    .gdemo__tx-head,
+    .poddash
+  ) {
+  min-width: 0;
+}
+
+:where(img, svg, video) {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Touch scrolling for overflow regions (iOS) */
+:where(.gdemo__tx-table-wrap, .gdemo__table-wrap) {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Minimum tap targets for primary actions (approx 44×44 CSS px) */
+@media (pointer: coarse) {
+  :where(
+      .home__btn,
+      .home__link,
+      .home__submit,
+      .podflow__signout,
+      .podwiz__btn,
+      .gdemo__cat-row,
+      .gdemo__person,
+      .gdemo__tx-filter,
+      .gdemo__mark-paid
+    ) {
+    min-height: 44px;
+  }
+
+  .home__link {
+    display: inline-flex;
+    align-items: center;
+  }
+}
