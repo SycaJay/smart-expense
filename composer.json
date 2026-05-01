@@ -1,0 +1,10 @@
+{
+    "name": "syca/work",
+    "description": "backend",
+    "type": "project",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    }
+}

@@ -99,11 +99,11 @@
   letter-spacing: -0.03em;
 }
 
-.podflow__mark {
+.podflow__logo-img {
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(94, 234, 212, 0.95), rgba(129, 140, 248, 0.85));
+  object-fit: cover;
   box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.35);
 }
 
@@ -130,7 +130,7 @@
   z-index: 1;
   max-width: 980px;
   margin: 0 auto;
-  padding: 28px 22px 64px;
+  padding: 32px 22px 72px;
 }
 
 .podflow__enter {
@@ -180,9 +180,9 @@
 }
 
 .podflow__subtitle {
-  margin: 0 0 28px;
+  margin: 0 0 32px;
   max-width: 56ch;
-  line-height: 1.6;
+  line-height: 1.68;
   color: rgba(255, 255, 255, 0.58);
   font-size: 1.02rem;
 }
@@ -404,7 +404,7 @@
 }
 
 .podwiz__panel {
-  padding: 8px 4px 12px;
+  padding: 10px 4px 14px;
 }
 
 .podwiz__panel--enter {
@@ -412,7 +412,7 @@
 }
 
 .podwiz__head {
-  margin-bottom: 22px;
+  margin-bottom: 26px;
 }
 
 .podwiz__eyebrow {
@@ -434,7 +434,7 @@
 .podwiz__lede {
   margin: 0;
   max-width: 62ch;
-  line-height: 1.6;
+  line-height: 1.68;
   color: rgba(255, 255, 255, 0.55);
 }
 
@@ -572,8 +572,8 @@
 .podwiz__fields {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .podwiz__field {
@@ -759,6 +759,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .podwiz__chip-row {
@@ -847,7 +850,7 @@
 }
 
 .podwiz__custom-panel {
-  padding: 0 4px 8px;
+  padding: 2px 4px 10px;
   animation: podflow-rise 0.35s ease both;
 }
 
@@ -1187,6 +1190,7 @@
   .podflow__subtitle {
     font-size: 0.98rem;
     max-width: none;
+    margin-bottom: 26px;
   }
 
   .podflow__resume {
@@ -1230,7 +1234,7 @@
 
 @media (max-width: 480px) {
   .podflow__main {
-    padding: 20px max(12px, env(safe-area-inset-left)) 48px max(12px, env(safe-area-inset-right));
+    padding: 22px max(12px, env(safe-area-inset-left)) 52px max(12px, env(safe-area-inset-right));
   }
 
   .podflow__title {

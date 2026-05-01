@@ -5,6 +5,8 @@ declare(strict_types=1);
 /**
  * GET /api/pods — list pods (requires `pods` table from project root smart_expense.sql)
  */
+Http::requireAuthUser();
+
 try {
     $pdo = Database::pdo();
     $sql = <<<SQL

@@ -1,115 +1,107 @@
-# Update
+# Smart Expense Progress Update
 
-## Full implementation status
+_Last updated: 2026-05-01_
 
-## 1) Landing, sign up, and log in
-- Landing page includes hero section, feature cards, and auth section with tab switch between Sign Up and Log In.
-- Sign Up form captures `fullName`, `email`, `phone`, and `password`.
-- Sign Up now sends data to backend endpoint `POST /api/signups`.
-- Signup data is written to `backend/storage/signups.json` (created automatically if missing).
-- Log In uses local credential check in `src/config/demoAuth.ts`:
-  - Email: `jessica@smartexpense.local`
-  - Password: `123456`
-- Successful login routes the user into the Pod flow.
+## Done So Far
+- Landing page and auth UI are built (Sign Up + Log In tabs).
+- Sign up now saves users into MySQL `users` table with hashed passwords (no hardcoded login credentials).
+- Login is now backend-based (`POST /api/login`) using real account records from DB.
+- Cookie session auth is implemented app-wide:
+  - session created on login
+  - `GET /api/me` restores login on refresh
+  - `POST /api/logout` clears session
+  - protected routes (like pods) require authenticated session
+- App flow is wired: `landing` -> `pods` after login, plus session restore on refresh.
+- Pod onboarding is implemented:
+  - create pod (type, member count, defaults, categories)
+  - join pod by code with format validation
+  - generated pod invite code
+- Pod dashboard screens exist for admin/member and include invite code + copy action.
+- Group dashboard demo is implemented (totals, categories, drilldowns, balances, history, settlement preview).
+- Add Expense and Pod Settings modals are implemented (main UI flow complete).
+- Dashboard/settings data is now API-driven (hardcoded frontend demo dataset removed).
+- New dashboard endpoint is live: `GET /api/pod-dashboard` (auth protected).
+- Smooth add-bill flow is now implemented in app UI:
+  - amount -> category -> split -> review -> confirm
+  - final confirmation state after save
+  - all pod members can add bills
+  - dashboard auto-refreshes so other members receive new bill updates on their side
+- Add expense endpoint is live: `POST /api/expenses` (auth protected, pod-membership required).
+- New uploaded logo is now integrated as app branding:
+  - app logo uses `public/app-logo.png`
+  - favicon uses `public/favicon.png`
+  - applied on home page and pod flow headers
+- Backend routes currently working:
+  - `GET /api/health`
+  - `POST /api/signups`
+  - `POST /api/login`
+  - `GET /api/me`
+  - `POST /api/logout`
+  - `POST /api/expenses` (auth protected, pod-membership required)
+  - `GET /api/pods` (auth protected)
+  - `GET /api/pod-dashboard` (auth protected)
+- Responsive base styles are in place across home, onboarding, dashboard, and modal views.
+- Accessibility and UX improvements completed:
+  - visible keyboard focus states
+  - dialog accessibility improvements (`Escape` close, labels/descriptions)
+  - live regions/status announcements for key UI feedback
+  - improved control semantics (`aria-expanded`, `aria-controls`, `aria-pressed`)
+  - reduced-motion support globally
+- Project planning docs are done (`diagrams.md`, `STEPS.md`).
 
-## 2) App phase and session flow
-- App switches between two phases in `src/App.tsx`:
-  - `landing` -> `pods` after authentication
-  - `pods` -> `landing` on sign out
-- Pod home session data is stored in `sessionStorage` via `src/onboarding/podHomeStorage.ts`.
-- Returning users can reopen their last created Pod from the decision screen.
+## Left To Do
+- Connect email invites to a real mail service (currently UI-only).
+- Persist dashboard and modal actions to backend (not just local/browser state).
+- Implement full expense CRUD with participant selection and weighted split persistence.
+- Implement real settlement engine + payment recording in backend.
+- Build full group settings management (member roles, remove member, defaults, leave flow persistence):
+  - add backend endpoints for update pod name/default split
+  - add role update endpoint (admin/member) with permission checks
+  - add remove-member + leave-pod endpoints with audit-safe validation
+  - persist settings modal actions to API instead of local state only
+- Complete reports/export features (CSV/PDF) if required:
+  - monthly pod summary export
+  - category breakdown export
+  - settlement history export
+  - downloadable CSV first, then optional PDF format
+- Complete final cross-device QA pass (phones, tablets, desktop, keyboard-only navigation, screen reader checks).
+- Add automated tests + CI checks and update deployment docs.
 
-## 3) Pod decision and onboarding
-- After login, users get a decision screen:
-  - `Create a Pod`
-  - `Join a Pod`
-- DB status pill checks `/api/pods` and shows:
-  - checking state
-  - online state with pod count
-  - offline state when backend/DB is unavailable
+## How Bills Are Split and Paid (Simple)
+- The Pod creator (admin) is the one who sets the bill-sharing rules for that Pod.
+- Every member in the Pod can add a bill.
+- A user adds the bill amount and selects how the bill should be shared.
+- Sharing options are:
+  - Equal split
+  - Percentage-based split
+- After selecting equal or percentage, the app asks if that rule should apply:
+  - to all categories, or
+  - only to specific categories
+- This allows mixed rules, for example:
+  - Rent = equal split
+  - Transport = percentage split
+- When members are invited (by code or email), they should first see these Pod rules before joining.
+- New members review the configured sharing setup and approve/accept it before they enter the Pod.
+- Bill entry should feel smooth: amount -> category -> split -> review -> confirm.
+- After confirm, the bill appears clearly and balances update automatically.
+- The new bill should also appear for other pod members on their side.
+- During settlement, the app suggests the minimum number of payments, and members mark payments as paid.
 
-## 4) Create Pod flow
-- 3-step create wizard implemented in `src/onboarding/CreatePodWizard.tsx`:
-  1. Pod type selection
-  2. Name and member count
-  3. Defaults and category customization
-- Pod types available:
-  - Shared Residence (default)
-  - Trip
-  - Short Stay
-  - Other / General
-- Default split methods supported:
-  - Equal
-  - Weighted
-- Category customization includes:
-  - rename categories
-  - toggle dashboard visibility
-  - add custom categories
-  - remove categories
-- Pod code is generated when creating a pod.
-
-## 5) Join Pod flow
-- Join screen accepts invite code input and normalizes format.
-- Validation enforces code pattern like `HSE-92KD`.
-- Invalid format shows clear inline error.
-- Successful join opens Pod dashboard in member mode.
-
-## 6) Pod dashboard and invite experience
-- Admin and member dashboard views are implemented in `src/onboarding/PodDashboard.tsx`.
-- Admin view includes:
-  - pod title
-  - invite code card
-  - copy invite code action
-  - optional email invite section (UI present, sending disabled)
-- Member view shows joined code and shared dashboard preview.
-
-## 7) Group dashboard functionality
-- Main dashboard implemented in `src/dashboard/GroupDashboardDemo.tsx` with:
-  - total spending card
-  - category breakdown list
-  - category drilldown table
-  - balance summary
-  - people list + person drilldown
-  - transaction history filters (`all`, `expense`, `payment`)
-  - settle-up section with suggested transfers
-  - mark-as-paid toggles per transfer
-- Current configured profile data:
-  - Viewer: Jessica
-  - Pod default name: Kingship Apartment
-  - Members: PraiseGod, Inez
-  - Updated sample expenses and settlement entries are in `src/demo/groupDashboardDummyData.ts`.
-
-## 8) Add expense and settings modals
-- Add Expense modal flow is implemented (5 steps):
-  1. basic details
-  2. category/subcategory
-  3. split method
-  4. processing state
-  5. confirmation state
-- Pod Settings modal includes:
-  - pod name input
-  - default split selector
-  - invite code display
-  - member list UI
-  - leave pod confirmation UI
-- Some actions in these modals are currently UI-only and not persisted to backend.
-
-## 9) Backend API currently wired
-- `GET /api/health` -> API heartbeat
-- `GET /api/pods` -> reads pods from MySQL (`pods` table)
-- `POST /api/signups` -> appends signup records to local JSON storage
-- Router is in `backend/public/index.php`.
-
-## 10) Responsive and UI foundation
-- Global responsive styles are present (`src/responsive.css`) and component-level styles are implemented for:
-  - home
-  - pod flow
-  - dashboard
-  - modals
-- Core UX includes animated transitions, cards, segmented controls, and mobile-friendly layout behavior.
-
-## Known limitations (current build)
-- Login is local credential matching, not real account authentication yet.
-- Signup stores password in plain text JSON for now (not production-safe).
-- Email invite sending is UI-only (mailer not connected).
-- Several dashboard interactions are currently preview/local-state behavior and not fully persisted server-side.
+## Files To Upload To `public_html`
+- Upload all files inside `dist/` to `public_html/` (frontend build output).
+- Upload `backend/public/index.php` to `public_html/api/index.php`.
+- Upload `backend/public/.htaccess` to `public_html/api/.htaccess`.
+- Upload `backend/api/login.php` to `public_html/api/login.php`.
+- Upload `backend/api/logout.php` to `public_html/api/logout.php`.
+- Upload `backend/api/me.php` to `public_html/api/me.php`.
+- Upload `backend/api/pods.php` to `public_html/api/pods.php`.
+- Upload `backend/api/pod_dashboard.php` to `public_html/api/pod_dashboard.php`.
+- Upload `backend/api/signups.php` to `public_html/api/signups.php`.
+- Upload `backend/api/health.php` to `public_html/api/health.php`.
+- Upload `backend/lib/Database.php` to `public_html/lib/Database.php`.
+- Upload `backend/lib/Http.php` to `public_html/lib/Http.php`.
+- Upload `backend/lib/bootstrap.php` to `public_html/lib/bootstrap.php`.
+- Upload `public/app-logo.png` to `public/app-logo.png`.
+- Upload `public/favicon.png` to `public/favicon.png`.
+- Create and upload `backend/config/config.php` (from `backend/config/config.example.php`) to `public_html/config/config.php`.
+- Import `smart_expense.sql` into Hostinger MySQL database (this is imported to DB, not placed in `public_html`).

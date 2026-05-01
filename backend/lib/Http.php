@@ -20,4 +20,23 @@ final class Http
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
     }
+
+    /**
+     * @return array{id:int,fullName:string,email:string,phone:string}
+     */
+    public static function requireAuthUser(): array
+    {
+        $raw = $_SESSION['auth_user'] ?? null;
+        if (!is_array($raw)) {
+            self::json(['error' => 'Unauthorized'], 401);
+            exit;
+        }
+
+        return [
+            'id' => (int) ($raw['id'] ?? 0),
+            'fullName' => (string) ($raw['fullName'] ?? ''),
+            'email' => (string) ($raw['email'] ?? ''),
+            'phone' => (string) ($raw['phone'] ?? ''),
+        ];
+    }
 }

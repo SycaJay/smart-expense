@@ -1,6 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { isDemoLogin } from '../config/demoAuth'
-import { saveSignup } from '../api/client'
+import { login, saveSignup } from '../api/client'
 import './HomePage.css'
 
 type AuthMode = 'signup' | 'login'
@@ -54,7 +53,7 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
       <div className="home__bg" aria-hidden />
       <header className="home__nav">
         <a className="home__logo" href="#top">
-          <span className="home__logo-mark" aria-hidden />
+          <img className="home__logo-img" src="/app-logo.png" alt="Smart Expense logo" />
           Smart Expense
         </a>
         <nav className="home__nav-actions" aria-label="Account">
@@ -114,7 +113,11 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
 
         <section className="home__strip" aria-label="What Smart Expense does">
           <article className="home__card home__rise">
-            <div className="home__card-icon home__card-icon--split" aria-hidden />
+            <div className="home__card-icon home__card-icon--split" aria-hidden>
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M3 7h8M13 7l2 2 3-4M3 17h8M13 17l2 2 3-4" />
+              </svg>
+            </div>
             <h2 className="home__card-title">Fair splits</h2>
             <p className="home__card-text">
               Equal or weighted shares — so everyone pays their part, whether
@@ -122,7 +125,11 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
             </p>
           </article>
           <article className="home__card home__rise home__rise--2">
-            <div className="home__card-icon home__card-icon--balance" aria-hidden />
+            <div className="home__card-icon home__card-icon--balance" aria-hidden>
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M4 6h16M7 6v11M17 6v11M9 17h6M12 17v3" />
+              </svg>
+            </div>
             <h2 className="home__card-title">Clear balances</h2>
             <p className="home__card-text">
               See who’s owed what at a glance, so money talk stays calm and
@@ -130,7 +137,11 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
             </p>
           </article>
           <article className="home__card home__rise home__rise--3">
-            <div className="home__card-icon home__card-icon--settle" aria-hidden />
+            <div className="home__card-icon home__card-icon--settle" aria-hidden>
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M7 7h11M18 7l-2-2M18 7l-2 2M17 17H6M6 17l2-2M6 17l2 2" />
+              </svg>
+            </div>
             <h2 className="home__card-title">Smarter settle-up</h2>
             <p className="home__card-text">
               Fewer transactions to zero everyone out — simple instructions, less
@@ -263,14 +274,18 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
                 onSubmit={(e) => {
                   e.preventDefault()
                   const fd = new FormData(e.currentTarget)
-                  const email = String(fd.get('email') ?? '')
+                  const email = String(fd.get('email') ?? '').trim()
                   const password = String(fd.get('password') ?? '')
-                  if (!isDemoLogin(email, password)) {
-                    setAuthError('Invalid email or password.')
-                    return
-                  }
-                  setAuthError(null)
-                  onAuthenticated?.()
+                  login({ email, password })
+                    .then(() => {
+                      setAuthError(null)
+                      onAuthenticated?.()
+                    })
+                    .catch((err: unknown) => {
+                      const msg =
+                        err instanceof Error ? err.message : 'Login failed.'
+                      setAuthError(msg)
+                    })
                 }}
               >
                 <label className="home__field">

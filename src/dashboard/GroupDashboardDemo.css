@@ -1,5 +1,8 @@
 .gdemo {
   margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .gdemo__banner {
@@ -41,7 +44,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .gdemo__h2 {
@@ -53,7 +58,7 @@
 .gdemo__grid {
   display: grid;
   grid-template-columns: 1fr 340px;
-  gap: 18px;
+  gap: 22px;
   align-items: start;
 }
 
@@ -64,11 +69,11 @@
 }
 
 .gdemo__card {
-  padding: 18px 18px 16px;
+  padding: 20px 20px 18px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.28);
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .gdemo__card-title {
@@ -96,6 +101,8 @@
   margin: 0 0 12px;
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.45);
+  max-width: 68ch;
+  line-height: 1.45;
 }
 
 .gdemo__hint--tight {
@@ -468,8 +475,8 @@
 }
 
 .gdemo__loop {
-  margin-bottom: 20px;
-  padding: 16px 18px;
+  margin-bottom: 6px;
+  padding: 18px 20px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(129, 140, 248, 0.06);
@@ -495,7 +502,8 @@
 .gdemo__card--wide {
   max-width: none;
   width: 100%;
-  margin-bottom: 16px;
+  margin-top: 4px;
+  margin-bottom: 18px;
 }
 
 .gdemo__tx-head {
@@ -583,6 +591,7 @@
 
 .gdemo__settle {
   scroll-margin-top: 100px;
+  margin-top: 2px;
 }
 
 .gdemo__settle-lede {
@@ -884,7 +893,7 @@
 /* —— Responsive: tablets & phones —— */
 @media (max-width: 1024px) {
   .gdemo__card {
-    padding: 16px 14px 14px;
+    padding: 17px 15px 15px;
   }
 
   .gdemo__mega {
@@ -893,6 +902,10 @@
 }
 
 @media (max-width: 768px) {
+  .gdemo {
+    gap: 10px;
+  }
+
   .gdemo__toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -956,7 +969,7 @@
   }
 
   .gdemo__card {
-    padding: 14px 12px 12px;
+    padding: 15px 12px 13px;
     border-radius: 16px;
   }
 

@@ -26,3 +26,4 @@ dist-ssr
 # PHP local config (do not commit)
 backend/config/config.php
 backend/config/config.example.php
+backend/.env

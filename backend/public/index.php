@@ -18,9 +18,16 @@ $routes = [
     'GET' => [
         '/api/health' => dirname(__DIR__) . '/api/health.php',
         '/api/pods' => dirname(__DIR__) . '/api/pods.php',
+        '/api/me' => dirname(__DIR__) . '/api/me.php',
+        '/api/pod-dashboard' => dirname(__DIR__) . '/api/pod_dashboard.php',
     ],
     'POST' => [
         '/api/signups' => dirname(__DIR__) . '/api/signups.php',
+        '/api/login' => dirname(__DIR__) . '/api/login.php',
+        '/api/logout' => dirname(__DIR__) . '/api/logout.php',
+        '/api/expenses' => dirname(__DIR__) . '/api/expenses.php',
+        '/api/pod-invites' => dirname(__DIR__) . '/api/pod_invites.php',
+        '/api/payment-notify' => dirname(__DIR__) . '/api/payment_notify.php',
     ],
 ];
 

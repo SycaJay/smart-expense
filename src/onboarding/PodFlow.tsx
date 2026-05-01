@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { logoutSession } from '../api/client'
 import { CreatePodWizard, type CreatedPodPayload } from './CreatePodWizard'
 import { JoinPodPanel } from './JoinPodPanel'
 import { PodDashboard } from './PodDashboard'
@@ -27,7 +28,7 @@ export function PodFlow({ onSignOut }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/pods')
+    fetch('/api/pods', { credentials: 'include' })
       .then(async (res) => {
         if (!res.ok) throw new Error(String(res.status))
         return res.json() as Promise<{ data?: unknown[] }>
@@ -68,6 +69,9 @@ export function PodFlow({ onSignOut }: Props) {
   const lastPodHome = screen === 'decision' ? loadPodHome() : null
 
   function handleSignOutClick() {
+    void logoutSession().catch(() => {
+      // Local sign-out fallback still runs if server logout fails.
+    })
     clearPodHome()
     onSignOut()
   }
@@ -77,10 +81,10 @@ export function PodFlow({ onSignOut }: Props) {
       <div className="podflow__bg" aria-hidden />
       <header className="podflow__header">
         <div className="podflow__brand">
-          <span className="podflow__mark" aria-hidden />
+          <img className="podflow__logo-img" src="/app-logo.png" alt="Smart Expense logo" />
           <span className="podflow__brand-text">Smart Expense</span>
         </div>
-        <div className="podflow__header-right">
+        <div className="podflow__header-right" aria-live="polite">
           {dbStatus === 'checking' && (
             <span className="podflow__db podflow__db--pending">Database…</span>
           )}

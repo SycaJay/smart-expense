@@ -68,11 +68,11 @@
   text-decoration: none;
 }
 
-.home__logo-mark {
+.home__logo-img {
   width: 38px;
   height: 38px;
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(94, 234, 212, 0.95), rgba(129, 140, 248, 0.85));
+  object-fit: cover;
   box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.35), 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
@@ -154,15 +154,15 @@
   z-index: 1;
   max-width: var(--home-max);
   margin: 0 auto;
-  padding: 36px 22px 56px;
+  padding: 40px 22px 64px;
 }
 
 .home__hero {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
-  gap: 32px 40px;
+  gap: 36px 44px;
   align-items: center;
-  padding: 12px 0 48px;
+  padding: 14px 0 54px;
 }
 
 @media (max-width: 900px) {
@@ -198,7 +198,7 @@
 
 .home__lead {
   font-size: 1.06rem;
-  line-height: 1.65;
+  line-height: 1.72;
   color: rgba(255, 255, 255, 0.62);
   max-width: 46ch;
   margin: 0 0 28px;
@@ -268,8 +268,8 @@
 .home__strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 48px;
+  gap: 18px;
+  margin-bottom: 56px;
 }
 
 @media (max-width: 820px) {
@@ -279,7 +279,7 @@
 }
 
 .home__card {
-  padding: 22px 20px;
+  padding: 24px 20px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
@@ -305,12 +305,25 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
+  display: grid;
+  place-items: center;
   margin-bottom: 14px;
   background: rgba(94, 234, 212, 0.12);
   border: 1px solid rgba(94, 234, 212, 0.22);
 }
 
+.home__card-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .home__card-icon--split {
+  color: #67e8f9;
   background-image: linear-gradient(
     135deg,
     rgba(94, 234, 212, 0.35),
@@ -319,6 +332,7 @@
 }
 
 .home__card-icon--balance {
+  color: #a5b4fc;
   background-image: radial-gradient(
     circle at 30% 30%,
     rgba(94, 234, 212, 0.5),
@@ -327,6 +341,7 @@
 }
 
 .home__card-icon--settle {
+  color: #5eead4;
   background-image: linear-gradient(
     120deg,
     rgba(165, 243, 252, 0.35),
@@ -534,7 +549,7 @@
 
   .home__hero {
     gap: 22px;
-    padding-bottom: 22px;
+    padding-bottom: 28px;
   }
 
   .home__title {
@@ -561,7 +576,7 @@
 
   .home__strip {
     gap: 12px;
-    margin-bottom: 32px;
+    margin-bottom: 38px;
   }
 
   .home__card {
@@ -594,7 +609,7 @@
 }
 
 @media (max-width: 380px) {
-  .home__logo-mark {
+  .home__logo-img {
     width: 34px;
     height: 34px;
   }
