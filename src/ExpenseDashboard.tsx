@@ -34,7 +34,7 @@ function createInitialState(): { members: Member[]; expenses: ExpenseItem[] } {
   return { members, expenses }
 }
 
-/** Expense splitting demo — wire back when post-auth dashboard is added. */
+// Standalone split demo (in-memory). Live app uses PodFlow + API dashboard.
 export function ExpenseDashboard() {
   const [{ members, expenses }, setState] = useState(createInitialState)
   const [apiOk, setApiOk] = useState<boolean | null>(null)

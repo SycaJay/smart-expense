@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-/**
- * POST /api/pod-invites
- * Send pod invite emails (admin only).
- */
+// POST /api/pod-invites — admin, SMTP.
 $authUser = Http::requireAuthUser();
 $viewerId = (int) $authUser['id'];
 
@@ -48,6 +45,15 @@ if ($emails === []) {
 try {
     $pdo = Database::pdo();
 
+    $missingMailKeys = Mailer::missingConfigKeys();
+    if ($missingMailKeys !== []) {
+        Http::json([
+            'error' => 'Invite email service is not configured',
+            'detail' => 'Missing mail environment variables: ' . implode(', ', $missingMailKeys),
+        ], 503);
+        return;
+    }
+
     if ($podId <= 0 && $inviteCode !== '') {
         $podByCode = $pdo->prepare('SELECT pod_id FROM pods WHERE invite_code = :invite_code LIMIT 1');
         $podByCode->execute([':invite_code' => $inviteCode]);
@@ -63,7 +69,7 @@ try {
     }
 
     $accessStmt = $pdo->prepare(
-        'SELECT p.pod_name, p.invite_code, pm.member_role
+        'SELECT p.pod_name, p.invite_code, p.pod_status, pm.member_role
          FROM pods p
          INNER JOIN pod_members pm ON pm.pod_id = p.pod_id
          WHERE p.pod_id = :pod_id AND pm.user_id = :viewer_id
@@ -79,6 +85,10 @@ try {
         Http::json(['error' => 'Only pod admins can send invites'], 403);
         return;
     }
+    if ((string) $access['pod_status'] === 'archived') {
+        Http::json(['error' => 'Archived pods cannot send new invites'], 422);
+        return;
+    }
 
     $podName = (string) $access['pod_name'];
     $inviteCodeFinal = (string) $access['invite_code'];
@@ -91,6 +101,7 @@ try {
     $subject = 'You are invited to join ' . $podName . ' on Smart Expense';
 
     $sent = [];
+    /** @var array<int, array{email:string,reason:string}> $failed */
     $failed = [];
 
     foreach ($emails as $recipient) {
@@ -120,13 +131,16 @@ try {
         if (Mailer::send($recipient, $recipient, $subject, $body, $plain)) {
             $sent[] = $recipient;
         } else {
-            $failed[] = $recipient;
+            $failed[] = [
+                'email' => $recipient,
+                'reason' => Mailer::lastError() !== '' ? Mailer::lastError() : 'Unknown mail send error',
+            ];
         }
     }
 
     Http::json([
         'ok' => true,
-        'message' => 'Invite emails processed',
+        'message' => $failed === [] ? 'Invite emails sent successfully' : 'Invite emails processed with some failures',
         'data' => [
             'podId' => $podId,
             'sent' => $sent,

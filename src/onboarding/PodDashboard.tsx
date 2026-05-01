@@ -6,7 +6,6 @@ import type { CreatedPodPayload } from './CreatePodWizard'
 type AdminProps = {
   variant: 'admin'
   payload: CreatedPodPayload
-  /** One-time emphasis after finishing the create wizard */
   justCreated?: boolean
   onPodMenu: () => void
 }

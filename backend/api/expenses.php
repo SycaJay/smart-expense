@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-/**
- * POST /api/expenses
- * Pod members can add bills.
- */
+// POST /api/expenses — add bill (any pod member).
 $authUser = Http::requireAuthUser();
 $viewerId = (int) $authUser['id'];
 
@@ -31,6 +28,10 @@ $subcategory = trim((string) ($input['subcategory'] ?? ''));
 $splitModeInput = trim((string) ($input['splitMode'] ?? 'equal'));
 $splitScope = trim((string) ($input['splitScope'] ?? 'all'));
 $expenseDate = trim((string) ($input['expenseDate'] ?? ''));
+/** @var array<int, int|string> $participantIdsInput */
+$participantIdsInput = is_array($input['participantIds'] ?? null) ? $input['participantIds'] : [];
+/** @var array<string, int|float|string> $participantWeightsInput */
+$participantWeightsInput = is_array($input['participantWeights'] ?? null) ? $input['participantWeights'] : [];
 
 if ($title === '' || $amount <= 0 || $categoryLabel === '') {
     Http::json(['error' => 'title, amount, and category are required'], 422);
@@ -69,7 +70,20 @@ try {
         return;
     }
 
-    // Enforce: everyone in the pod can add a bill.
+    $statusStmt = $pdo->prepare('SELECT pod_status FROM pods WHERE pod_id = :pod_id LIMIT 1');
+    $statusStmt->execute([':pod_id' => $podId]);
+    $statusRow = $statusStmt->fetch();
+    if (!is_array($statusRow)) {
+        $pdo->rollBack();
+        Http::json(['error' => 'Pod not found'], 404);
+        return;
+    }
+    if ((string) $statusRow['pod_status'] === 'archived') {
+        $pdo->rollBack();
+        Http::json(['error' => 'This pod is archived and no longer accepts new bills'], 422);
+        return;
+    }
+
     $memberStmt = $pdo->prepare(
         'SELECT pod_member_id FROM pod_members WHERE pod_id = :pod_id AND user_id = :user_id LIMIT 1'
     );
@@ -149,18 +163,44 @@ try {
 
     $membersStmt = $pdo->prepare('SELECT user_id FROM pod_members WHERE pod_id = :pod_id');
     $membersStmt->execute([':pod_id' => $podId]);
-    $memberIds = $membersStmt->fetchAll(PDO::FETCH_COLUMN);
-    $memberCount = max(1, count($memberIds));
-    $equalWeight = round(1 / $memberCount, 4);
+    $memberIdsRaw = $membersStmt->fetchAll(PDO::FETCH_COLUMN);
+    $memberIds = array_map(static fn($v): int => (int) $v, $memberIdsRaw);
+    $memberLookup = array_flip($memberIds);
+
+    $participantIds = [];
+    if ($participantIdsInput !== []) {
+        foreach ($participantIdsInput as $pidRaw) {
+            $pid = (int) $pidRaw;
+            if ($pid > 0 && isset($memberLookup[$pid])) {
+                $participantIds[$pid] = true;
+            }
+        }
+    }
+    if ($participantIds === []) {
+        foreach ($memberIds as $mid) {
+            $participantIds[$mid] = true;
+        }
+    }
+    $participantIdList = array_keys($participantIds);
+    $participantCount = max(1, count($participantIdList));
+    $equalWeight = round(1 / $participantCount, 4);
 
     $participantStmt = $pdo->prepare(
         'INSERT INTO expense_participants (expense_id, user_id, weight) VALUES (:expense_id, :user_id, :weight)'
     );
-    foreach ($memberIds as $memberIdRaw) {
+    foreach ($participantIdList as $participantUserId) {
+        $weight = $equalWeight;
+        if ($splitModeInput === 'percentage') {
+            $rawWeight = $participantWeightsInput[(string) $participantUserId] ?? null;
+            $parsedWeight = $rawWeight !== null ? (float) $rawWeight : 0.0;
+            if ($parsedWeight > 0) {
+                $weight = round($parsedWeight, 4);
+            }
+        }
         $participantStmt->execute([
             ':expense_id' => $expenseId,
-            ':user_id' => (int) $memberIdRaw,
-            ':weight' => $equalWeight,
+            ':user_id' => $participantUserId,
+            ':weight' => $weight,
         ]);
     }
 

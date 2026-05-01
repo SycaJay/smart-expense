@@ -2,22 +2,16 @@
 
 declare(strict_types=1);
 
-/**
- * GET /api/pod-dashboard?inviteCode=HSE-XXXX
- * Returns API-driven dashboard/settings payload for the selected pod.
- */
+// GET /api/pod-dashboard — main pod screen payload.
 $authUser = Http::requireAuthUser();
 $viewerId = (int) $authUser['id'];
 $inviteCode = strtoupper(trim((string) ($_GET['inviteCode'] ?? '')));
 
-/**
- * @return array{pod_id:int,pod_name:string,invite_code:string,currency:string,default_split_method:string}|null
- */
 function resolvePod(PDO $pdo, int $viewerId, string $inviteCode): ?array
 {
     if ($inviteCode !== '') {
         $stmt = $pdo->prepare(
-            'SELECT p.pod_id, p.pod_name, p.invite_code, p.currency, p.default_split_method
+            'SELECT p.pod_id, p.pod_name, p.invite_code, p.currency, p.default_split_method, p.pod_status
              FROM pods p
              WHERE p.invite_code = :invite_code
              LIMIT 1'
@@ -31,12 +25,13 @@ function resolvePod(PDO $pdo, int $viewerId, string $inviteCode): ?array
                 'invite_code' => (string) $row['invite_code'],
                 'currency' => (string) $row['currency'],
                 'default_split_method' => (string) $row['default_split_method'],
+                'pod_status' => (string) $row['pod_status'],
             ];
         }
     }
 
     $stmt = $pdo->prepare(
-        'SELECT p.pod_id, p.pod_name, p.invite_code, p.currency, p.default_split_method
+        'SELECT p.pod_id, p.pod_name, p.invite_code, p.currency, p.default_split_method, p.pod_status
          FROM pods p
          INNER JOIN pod_members pm ON pm.pod_id = p.pod_id
          WHERE pm.user_id = :viewer_id
@@ -52,6 +47,7 @@ function resolvePod(PDO $pdo, int $viewerId, string $inviteCode): ?array
             'invite_code' => (string) $row['invite_code'],
             'currency' => (string) $row['currency'],
             'default_split_method' => (string) $row['default_split_method'],
+            'pod_status' => (string) $row['pod_status'],
         ];
     }
 
@@ -68,6 +64,7 @@ try {
             'data' => [
                 'pod' => null,
                 'viewerName' => (string) $authUser['fullName'],
+                'viewerId' => $viewerId,
                 'members' => [],
                 'categories' => [],
                 'totals' => [
@@ -78,6 +75,7 @@ try {
                 'netBalances' => [],
                 'memberLabel' => [],
                 'transactions' => [],
+                'adminNotice' => null,
             ],
         ]);
         return;
@@ -97,6 +95,7 @@ try {
     $memberRows = $membersStmt->fetchAll();
 
     $members = [];
+    $memberRoles = [];
     $memberLabel = [];
     $netBalances = [];
     $memberIds = [];
@@ -108,6 +107,7 @@ try {
             'name' => $name,
             'role' => (string) $row['member_role'],
         ];
+        $memberRoles[$id] = (string) $row['member_role'];
         $memberLabel[(string) $id] = $name;
         $netBalances[(string) $id] = 0.0;
         $memberIds[] = $id;
@@ -121,6 +121,7 @@ try {
             'name' => (string) $authUser['fullName'],
             'role' => 'member',
         ];
+        $memberRoles[$viewerId] = 'member';
     }
 
     $memberCount = max(1, count($memberIds));
@@ -167,6 +168,8 @@ try {
             e.pod_category_id,
             e.expense_title,
             e.amount,
+            e.split_mode,
+            e.notes,
             e.expense_date,
             e.paid_by_user_id,
             e.created_by_user_id,
@@ -197,6 +200,18 @@ try {
         $paidByName = (string) $row['paid_by_name'];
         $categoryId = $row['pod_category_id'] !== null ? (string) $row['pod_category_id'] : 'uncategorized';
         $categoryLabel = trim((string) ($row['category_label'] ?? '')) !== '' ? (string) $row['category_label'] : 'Other';
+        $notes = (string) ($row['notes'] ?? '');
+        $subcategory = '';
+        $splitScope = 'all';
+        if ($notes !== '') {
+            if (preg_match('/Subcategory:\s*([^|]+)/i', $notes, $m) === 1) {
+                $subcategory = trim((string) $m[1]);
+            }
+            if (preg_match('/Split rule:\s*(equal|percentage)\s*\((all|category_only)\)/i', $notes, $m) === 1) {
+                $splitScope = strtolower((string) $m[2]) === 'category_only' ? 'category_only' : 'all';
+            }
+        }
+        $splitMode = (string) ($row['split_mode'] ?? 'equal') === 'weighted' ? 'percentage' : 'equal';
 
         if (!isset($categories[$categoryId])) {
             $categories[$categoryId] = [
@@ -215,30 +230,69 @@ try {
             'expense_id' => $expenseId,
             'title' => (string) $row['expense_title'],
             'amount' => $amount,
-            'subcategory' => $categoryLabel,
+            'subcategory' => $subcategory,
+            'split_mode' => $splitMode,
+            'split_scope' => $splitScope,
             'paid_by' => $paidByName,
             'added_by' => $addedByName,
+            'can_edit' => ((int) $row['created_by_user_id'] === $viewerId) || (($memberRoles[$viewerId] ?? 'member') === 'admin'),
             'date_label' => (string) $row['expense_date'],
         ];
 
-        $share = $amount / $memberCount;
-        foreach ($memberIds as $memberId) {
+        $participantsStmt = $pdo->prepare(
+            'SELECT user_id, weight
+             FROM expense_participants
+             WHERE expense_id = :expense_id'
+        );
+        $participantsStmt->execute([':expense_id' => (int) $row['expense_id']]);
+        $parts = $participantsStmt->fetchAll();
+        $totalWeight = 0.0;
+        foreach ($parts as $part) {
+            $totalWeight += max(0.0, (float) $part['weight']);
+        }
+        if ($totalWeight <= 0.0) {
+            $totalWeight = (float) $memberCount;
+            $parts = array_map(
+                static fn(int $id): array => ['user_id' => $id, 'weight' => 1],
+                $memberIds
+            );
+        }
+
+        foreach ($parts as $part) {
+            $memberId = (int) $part['user_id'];
+            $weight = max(0.0, (float) $part['weight']);
+            $share = $amount * ($weight / $totalWeight);
             $key = (string) $memberId;
             if (!isset($netBalances[$key])) {
                 $netBalances[$key] = 0.0;
             }
             if ($memberId === $paidById) {
                 $netBalances[$key] += ($amount - $share);
-                continue;
+            } else {
+                $netBalances[$key] -= $share;
             }
-            $netBalances[$key] -= $share;
-        }
 
-        if ($viewerId !== $paidById) {
-            $categories[$categoryId]['you_owe'] += $share;
-            $viewerYouOwe += $share;
-            $viewerOwesByPersonCategory[(string) $paidById][$categoryLabel] =
-                ($viewerOwesByPersonCategory[(string) $paidById][$categoryLabel] ?? 0.0) + $share;
+            if ($memberId === $viewerId && $viewerId !== $paidById) {
+                $categories[$categoryId]['you_owe'] += $share;
+                $viewerYouOwe += $share;
+                $viewerOwesByPersonCategory[(string) $paidById][$categoryLabel] =
+                    ($viewerOwesByPersonCategory[(string) $paidById][$categoryLabel] ?? 0.0) + $share;
+            }
+        }
+        $lastIdx = count($categories[$categoryId]['expenses']) - 1;
+        if ($lastIdx >= 0) {
+            $categories[$categoryId]['expenses'][$lastIdx]['participant_ids'] = array_map(
+                static fn(array $p): int => (int) $p['user_id'],
+                $parts
+            );
+            $categories[$categoryId]['expenses'][$lastIdx]['participant_weights'] = array_reduce(
+                $parts,
+                static function (array $carry, array $p): array {
+                    $carry[(string) ((int) $p['user_id'])] = (float) $p['weight'];
+                    return $carry;
+                },
+                []
+            );
         }
 
         $paidByCategory[(string) $paidById][$categoryLabel] =
@@ -318,6 +372,41 @@ try {
         }
     }
 
+    $adminNotice = null;
+    $noticeStmt = $pdo->prepare(
+        'SELECT notice_id, payload_json
+         FROM pod_admin_notices
+         WHERE pod_id = :pod_id
+           AND target_user_id = :target_user_id
+           AND notice_type = "member_left_split_policy"
+           AND is_resolved = 0
+         ORDER BY notice_id DESC
+         LIMIT 1'
+    );
+    $noticeStmt->execute([':pod_id' => $podId, ':target_user_id' => $viewerId]);
+    $noticeRow = $noticeStmt->fetch();
+    if (is_array($noticeRow)) {
+        $payload = null;
+        $rawPayload = (string) ($noticeRow['payload_json'] ?? '');
+        if ($rawPayload !== '') {
+            try {
+                /** @var array<string, mixed> $decoded */
+                $decoded = json_decode($rawPayload, true, 512, JSON_THROW_ON_ERROR);
+                $payload = $decoded;
+            } catch (Throwable $ignored) {
+                $payload = null;
+            }
+        }
+        $adminNotice = [
+            'noticeId' => (int) $noticeRow['notice_id'],
+            'kind' => 'member_left_split_policy',
+            'leftUserName' => (string) ($payload['leftUserName'] ?? 'A member'),
+            'reason' => (string) ($payload['reason'] ?? ''),
+            'previousDefaultSplitMethod' => (string) ($payload['previousDefaultSplitMethod'] ?? $pod['default_split_method']),
+            'remainingMemberCount' => (int) ($payload['remainingMemberCount'] ?? max(0, count($members) - 1)),
+        ];
+    }
+
     Http::json([
         'ok' => true,
         'data' => [
@@ -327,8 +416,10 @@ try {
                 'inviteCode' => (string) $pod['invite_code'],
                 'currency' => $currency,
                 'defaultSplitMethod' => (string) $pod['default_split_method'],
+                'isArchived' => (string) $pod['pod_status'] === 'archived',
             ],
             'viewerName' => (string) $authUser['fullName'],
+            'viewerId' => $viewerId,
             'members' => $members,
             'categories' => $orderedCategories,
             'totals' => [
@@ -339,6 +430,7 @@ try {
             'netBalances' => $netBalances,
             'memberLabel' => $memberLabel,
             'transactions' => $transactions,
+            'adminNotice' => $adminNotice,
         ],
     ]);
 } catch (Throwable $e) {

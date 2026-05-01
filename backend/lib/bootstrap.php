@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-/**
- * Load simple KEY=VALUE entries from backend/.env into process env.
- */
+// Parses backend/.env into getenv / $_ENV (KEY=VALUE, # comments).
 function loadEnvFile(string $path): void
 {
     if (!is_file($path) || !is_readable($path)) {

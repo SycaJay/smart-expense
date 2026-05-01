@@ -21,9 +21,6 @@ final class Http
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
     }
 
-    /**
-     * @return array{id:int,fullName:string,email:string,phone:string}
-     */
     public static function requireAuthUser(): array
     {
         $raw = $_SESSION['auth_user'] ?? null;

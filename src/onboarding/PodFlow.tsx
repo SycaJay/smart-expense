@@ -70,7 +70,7 @@ export function PodFlow({ onSignOut }: Props) {
 
   function handleSignOutClick() {
     void logoutSession().catch(() => {
-      // Local sign-out fallback still runs if server logout fails.
+      // Still wipe local pod prefs + go home if /logout errors.
     })
     clearPodHome()
     onSignOut()

@@ -1,4 +1,4 @@
-/** Human-friendly Pod invite code (e.g. HSE-92KD) — avoids ambiguous chars */
+// No I, O, 0, 1 in the random part — easier to read aloud.
 export function generatePodCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let s = ''

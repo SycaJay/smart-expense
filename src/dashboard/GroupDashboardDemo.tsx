@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  confirmPodSplitPolicy,
+  deleteExpense,
   fetchPodDashboard,
+  fetchWeeklyReport,
   notifyPayment,
+  downloadReport,
   type DashboardCategory,
   type DashboardPerson,
 } from '../api/client'
@@ -34,6 +38,7 @@ const EMPTY_TRANSACTIONS: {
 const EMPTY_NET_BALANCES: Record<string, number> = {}
 const EMPTY_MEMBER_LABEL: Record<string, string> = {}
 const EMPTY_MEMBERS: { id: number; name: string; role: 'admin' | 'member' | string }[] = []
+const EMPTY_WEEKLY_DAYS: { date: string; label: string; spent: number; bills: number; settled: number }[] = []
 
 export function GroupDashboardDemo({
   podName = 'Kingship Apartment',
@@ -45,10 +50,23 @@ export function GroupDashboardDemo({
   > | null>(null)
   const [openAdd, setOpenAdd] = useState(false)
   const [openSettings, setOpenSettings] = useState(false)
+  const [editExpense, setEditExpense] = useState<{
+    expenseId: number
+    title: string
+    amount: number
+    category: string
+    subcategory?: string
+    splitMode: 'equal' | 'percentage'
+    splitScope: 'all' | 'category_only'
+    expenseDate: string
+    participantIds: number[]
+    participantWeights: Record<string, number>
+  } | null>(null)
   const [openCatId, setOpenCatId] = useState<string | null>(null)
   const [openPersonId, setOpenPersonId] = useState<string | null>(null)
   const [txFilter, setTxFilter] = useState<'all' | 'expense' | 'payment'>('all')
   const [paidTransfers, setPaidTransfers] = useState<Record<string, boolean>>({})
+  const [weeklyReport, setWeeklyReport] = useState<Awaited<ReturnType<typeof fetchWeeklyReport>> | null>(null)
 
   const loadDashboard = useCallback(async (cancelledRef?: { cancelled: boolean }) => {
     return fetchPodDashboard(inviteCode)
@@ -58,6 +76,15 @@ export function GroupDashboardDemo({
         setLoadError(null)
         const firstCategory = data?.categories?.[0]?.category_id ?? null
         setOpenCatId(firstCategory)
+        return fetchWeeklyReport(data?.pod?.podId, data?.pod?.inviteCode)
+          .then((weekly) => {
+            if (cancelledRef?.cancelled) return
+            setWeeklyReport(weekly)
+          })
+          .catch(() => {
+            if (cancelledRef?.cancelled) return
+            setWeeklyReport(null)
+          })
       })
       .catch((err: unknown) => {
         if (cancelledRef?.cancelled) return
@@ -89,13 +116,20 @@ export function GroupDashboardDemo({
   const categories = dashboardData?.categories ?? EMPTY_CATEGORIES
   const currency = dashboardData?.pod?.currency ?? 'GHS'
   const viewerName = dashboardData?.viewerName ?? 'You'
+  const viewerId = dashboardData?.viewerId ?? null
   const people = dashboardData?.people ?? EMPTY_PEOPLE
   const transactions = dashboardData?.transactions ?? EMPTY_TRANSACTIONS
   const netBalances = dashboardData?.netBalances ?? EMPTY_NET_BALANCES
   const memberLabel = dashboardData?.memberLabel ?? EMPTY_MEMBER_LABEL
   const totals = dashboardData?.totals ?? { spending: 0, youOwe: 0 }
   const members = dashboardData?.members ?? EMPTY_MEMBERS
+  const viewerRole = members.find((m) => m.id === viewerId)?.role ?? 'member'
+  const isViewerAdmin = viewerRole === 'admin'
   const defaultSplitMethod = dashboardData?.pod?.defaultSplitMethod ?? 'equal'
+  const isArchived = dashboardData?.pod?.isArchived ?? false
+  const adminNotice = dashboardData?.adminNotice ?? null
+  const weeklySummary = weeklyReport?.summary ?? { totalSpent: 0, totalBills: 0, totalSettled: 0 }
+  const weeklyDays = weeklyReport?.days ?? EMPTY_WEEKLY_DAYS
   const categoryLabels = categories.map((c) => c.label)
 
   const settlementPlan = useMemo(
@@ -109,6 +143,10 @@ export function GroupDashboardDemo({
   }, [transactions, txFilter])
 
   async function togglePaid(t: Transfer) {
+    if (!isViewerAdmin) {
+      setLoadError('Only pod admins can confirm external payments.')
+      return
+    }
     const k = transferKey(t)
     const wasPaid = Boolean(paidTransfers[k])
     setPaidTransfers((p) => ({ ...p, [k]: !p[k] }))
@@ -123,6 +161,7 @@ export function GroupDashboardDemo({
     try {
       await notifyPayment({
         podId,
+        payerUserId: Number(t.from),
         receiverUserId,
         amount: t.amount,
         currency,
@@ -133,8 +172,57 @@ export function GroupDashboardDemo({
     }
   }
 
+  async function handleSplitPolicyConfirm(policy: 'equal' | 'keep_previous') {
+    const podId = dashboardData?.pod?.podId
+    const noticeId = adminNotice?.noticeId
+    if (!podId || !noticeId) return
+    try {
+      await confirmPodSplitPolicy({ podId, noticeId, policy })
+      await loadDashboard()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not confirm split policy.'
+      setLoadError(message)
+    }
+  }
+
   function scrollToSettle() {
     document.getElementById('gdemo-settle')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  async function handleDeleteExpense(expenseId: string) {
+    const ok = window.confirm('Delete this expense? This cannot be undone.')
+    if (!ok) return
+    try {
+      await deleteExpense(Number(expenseId))
+      await loadDashboard()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not delete expense.'
+      setLoadError(message)
+    }
+  }
+
+  function handleEditExpense(expense: DashboardCategory['expenses'][number], categoryLabel: string) {
+    const participantIds = expense.participant_ids && expense.participant_ids.length > 0
+      ? expense.participant_ids
+      : members.map((m) => m.id)
+    const participantWeights = expense.participant_weights && Object.keys(expense.participant_weights).length > 0
+      ? expense.participant_weights
+      : Object.fromEntries(
+          members.map((m) => [String(m.id), Number((100 / Math.max(1, members.length)).toFixed(2))]),
+        )
+    setEditExpense({
+      expenseId: Number(expense.expense_id),
+      title: expense.title,
+      amount: expense.amount,
+      category: categoryLabel,
+      subcategory: expense.subcategory,
+      splitMode: expense.split_mode ?? 'equal',
+      splitScope: expense.split_scope ?? 'all',
+      expenseDate: expense.date_label.slice(0, 10),
+      participantIds,
+      participantWeights,
+    })
+    setOpenAdd(true)
   }
 
   return (
@@ -160,12 +248,25 @@ export function GroupDashboardDemo({
           <button
             type="button"
             className="podwiz__btn podwiz__btn--primary"
-            onClick={() => setOpenAdd(true)}
+            onClick={() => {
+              setEditExpense(null)
+              setOpenAdd(true)
+            }}
+            disabled={isArchived}
           >
             Add expense
           </button>
         </div>
       </nav>
+
+      {isArchived && (
+        <section className="gdemo__card gdemo__card--wide" aria-live="polite">
+          <h3 className="gdemo__card-title">Pod archived</h3>
+          <p className="gdemo__hint">
+            This pod is closed and kept for records. New bills, invites, and payment updates are disabled.
+          </p>
+        </section>
+      )}
 
       {loading && <p className="gdemo__muted">Loading dashboard data...</p>}
       {loadError && (
@@ -191,6 +292,109 @@ export function GroupDashboardDemo({
           <li>End of month → Settle up with fewer payments</li>
         </ol>
       </section>
+
+      <section className="gdemo__card gdemo__card--wide" aria-labelledby="weekly-report-title">
+        <div className="gdemo__tx-head">
+          <div>
+            <h3 id="weekly-report-title" className="gdemo__card-title">Weekly report</h3>
+            <p className="gdemo__hint gdemo__hint--tight">Your 7-day spending and settlement snapshot.</p>
+          </div>
+          <div className="gdemo__tx-filters">
+            <button
+              type="button"
+              className="gdemo__tx-filter"
+              onClick={() => downloadReport('monthly', 'csv', dashboardData?.pod?.podId ?? undefined, dashboardData?.pod?.inviteCode)}
+            >
+              Monthly CSV
+            </button>
+            <button
+              type="button"
+              className="gdemo__tx-filter"
+              onClick={() => downloadReport('category', 'csv', dashboardData?.pod?.podId ?? undefined, dashboardData?.pod?.inviteCode)}
+            >
+              Category CSV
+            </button>
+            <button
+              type="button"
+              className="gdemo__tx-filter"
+              onClick={() => downloadReport('settlement', 'csv', dashboardData?.pod?.podId ?? undefined, dashboardData?.pod?.inviteCode)}
+            >
+              Settlement CSV
+            </button>
+            <button
+              type="button"
+              className="gdemo__tx-filter"
+              onClick={() => downloadReport('monthly', 'pdf', dashboardData?.pod?.podId ?? undefined, dashboardData?.pod?.inviteCode)}
+            >
+              Monthly PDF
+            </button>
+            <button
+              type="button"
+              className="gdemo__tx-filter"
+              onClick={() => downloadReport('category', 'pdf', dashboardData?.pod?.podId ?? undefined, dashboardData?.pod?.inviteCode)}
+            >
+              Category PDF
+            </button>
+            <button
+              type="button"
+              className="gdemo__tx-filter"
+              onClick={() => downloadReport('settlement', 'pdf', dashboardData?.pod?.podId ?? undefined, dashboardData?.pod?.inviteCode)}
+            >
+              Settlement PDF
+            </button>
+          </div>
+        </div>
+        <div className="gdemo__settle-grid">
+          <div>
+            <p className="gdemo__muted">Spent this week</p>
+            <p className="gdemo__mega">{formatMoney(weeklySummary.totalSpent, currency)}</p>
+            <p className="gdemo__hint gdemo__hint--tight">Bills: {weeklySummary.totalBills}</p>
+            <p className="gdemo__hint gdemo__hint--tight">Settled: {formatMoney(weeklySummary.totalSettled, currency)}</p>
+          </div>
+          <div>
+            <p className="gdemo__settle-sub">By day</p>
+            <ul className="gdemo__settle-bal-list">
+              {weeklyDays.map((day) => (
+                <li key={day.date}>
+                  <span>{day.label}</span>
+                  <span>{formatMoney(day.spent, currency)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {adminNotice && (
+        <section className="gdemo__card gdemo__card--wide" aria-live="polite">
+          <h3 className="gdemo__card-title">Member left - confirm split policy</h3>
+          <p className="gdemo__hint">
+            {adminNotice.leftUserName} left the pod. Remaining members: {adminNotice.remainingMemberCount}.
+          </p>
+          {adminNotice.reason && (
+            <p className="gdemo__hint">Reason shared: "{adminNotice.reason}"</p>
+          )}
+          <p className="gdemo__hint">
+            Choose how new bills should split from now onward.
+          </p>
+          <div className="gdemo__toolbar-btns">
+            <button
+              type="button"
+              className="podwiz__btn podwiz__btn--ghost"
+              onClick={() => handleSplitPolicyConfirm('keep_previous')}
+            >
+              Keep previous default ({adminNotice.previousDefaultSplitMethod})
+            </button>
+            <button
+              type="button"
+              className="podwiz__btn podwiz__btn--primary"
+              onClick={() => handleSplitPolicyConfirm('equal')}
+            >
+              Switch to equal split
+            </button>
+          </div>
+        </section>
+      )}
 
       <div className="gdemo__grid">
         <div className="gdemo__col gdemo__col--main">
@@ -225,7 +429,14 @@ export function GroupDashboardDemo({
                     <span className="gdemo__cat-label">{c.label}</span>
                     <span className="gdemo__cat-amt">{formatMoney(c.total, currency)}</span>
                   </button>
-                  {openCatId === c.category_id && <CategoryDrillDown category={c} currency={currency} />}
+                  {openCatId === c.category_id && (
+                    <CategoryDrillDown
+                      category={c}
+                      currency={currency}
+                      onEdit={handleEditExpense}
+                      onDelete={handleDeleteExpense}
+                    />
+                  )}
                 </li>
               ))}
             </ul>
@@ -392,8 +603,10 @@ export function GroupDashboardDemo({
                         type="button"
                         className={`gdemo__mark-paid ${done ? 'is-done' : ''}`}
                         onClick={() => togglePaid(t)}
+                        disabled={!isViewerAdmin}
+                        title={!isViewerAdmin ? 'Only pod admins can confirm external payments' : undefined}
                       >
-                        {done ? 'Marked paid' : 'Mark as paid'}
+                        {done ? 'Marked paid' : isViewerAdmin ? 'Confirm paid (external)' : 'Admin confirms payment'}
                       </button>
                     </li>
                   )
@@ -410,26 +623,31 @@ export function GroupDashboardDemo({
         onSaved={() => {
           void loadDashboard()
           setOpenAdd(false)
+          setEditExpense(null)
         }}
         podId={dashboardData?.pod?.podId ?? null}
         inviteCode={dashboardData?.pod?.inviteCode ?? inviteCode}
         currency={currency}
         categories={categoryLabels.length > 0 ? categoryLabels : ['Other']}
         members={members}
+        expenseToEdit={editExpense}
       />
       <PodSettingsDemoModal
         open={openSettings}
         onClose={() => setOpenSettings(false)}
+        onUpdated={() => {
+          void loadDashboard()
+        }}
+        onLeft={() => {
+          void loadDashboard()
+        }}
         defaultPodName={dashboardData?.pod?.podName ?? podName}
         inviteCode={dashboardData?.pod?.inviteCode ?? inviteCode}
         podId={dashboardData?.pod?.podId ?? null}
+        viewerId={viewerId}
         currency={currency}
         defaultSplitMethod={defaultSplitMethod}
-        members={
-          members.length > 0
-            ? members.map((m) => (m.role === 'admin' ? `${m.name} (admin)` : m.name))
-            : [viewerName]
-        }
+        members={members.length > 0 ? members : [{ id: viewerId ?? -1, name: viewerName, role: 'member' }]}
       />
     </div>
   )
@@ -438,9 +656,13 @@ export function GroupDashboardDemo({
 function CategoryDrillDown({
   category,
   currency,
+  onEdit,
+  onDelete,
 }: {
   category: DashboardCategory
   currency: string
+  onEdit: (expense: DashboardCategory['expenses'][number], categoryLabel: string) => void
+  onDelete: (expenseId: string) => void
 }) {
   return (
     <div id={`cat-drill-${category.category_id}`} className="gdemo__drill gdemo__drill--cat">
@@ -455,6 +677,7 @@ function CategoryDrillDown({
             <th>Paid by</th>
             <th>Added by</th>
             <th>Date</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -470,6 +693,28 @@ function CategoryDrillDown({
               <td>{ex.paid_by}</td>
               <td>{ex.added_by}</td>
               <td>{ex.date_label}</td>
+              <td>
+                {ex.can_edit ? (
+                  <div className="gdemo__toolbar-btns">
+                    <button
+                      type="button"
+                      className="podwiz__btn podwiz__btn--ghost"
+                      onClick={() => onEdit(ex, category.label)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="podwiz__btn podwiz__btn--ghost"
+                      onClick={() => onDelete(ex.expense_id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <span className="gdemo__muted">-</span>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

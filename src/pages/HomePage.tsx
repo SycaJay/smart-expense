@@ -10,7 +10,6 @@ function modeFromHash(): AuthMode {
 }
 
 type HomePageProps = {
-  /** Called after a successful sign-up or log-in. */
   onAuthenticated?: () => void
 }
 

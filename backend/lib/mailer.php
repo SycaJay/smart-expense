@@ -7,7 +7,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 $vendorAutoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
 if (!is_file($vendorAutoload)) {
-    error_log('Missing Composer autoload file at: ' . $vendorAutoload);
+    error_log('Composer autoload missing: ' . $vendorAutoload);
     return;
 }
 
@@ -15,6 +15,8 @@ require_once $vendorAutoload;
 
 final class Mailer
 {
+    private static string $lastError = '';
+
     private static function env(string $key, string $default = ''): string
     {
         $value = getenv($key);
@@ -23,6 +25,30 @@ final class Mailer
         }
 
         return (string) $value;
+    }
+
+    public static function missingConfigKeys(): array
+    {
+        $required = ['MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_FROM_ADDRESS'];
+        $missing = [];
+        foreach ($required as $key) {
+            $value = trim(self::env($key));
+            if ($value === '') {
+                $missing[] = $key;
+            }
+        }
+
+        return $missing;
+    }
+
+    public static function isConfigured(): bool
+    {
+        return self::missingConfigKeys() === [];
+    }
+
+    public static function lastError(): string
+    {
+        return self::$lastError;
     }
 
     public static function send(
@@ -41,7 +67,8 @@ final class Mailer
         $fromName = self::env('MAIL_FROM_NAME', 'Smart Expense Team');
 
         if ($username === '' || $password === '' || $fromAddress === '') {
-            error_log('Mailer is not configured. Missing MAIL_USERNAME / MAIL_PASSWORD / MAIL_FROM_ADDRESS.');
+            self::$lastError = 'Mailer is not configured. Check MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, and MAIL_FROM_ADDRESS.';
+            error_log(self::$lastError);
             return false;
         }
 
@@ -62,9 +89,11 @@ final class Mailer
             $mail->AltBody = $plainTextBody;
 
             $mail->send();
+            self::$lastError = '';
             return true;
         } catch (Exception $e) {
-            error_log('Email could not be sent. Error: ' . $mail->ErrorInfo);
+            self::$lastError = 'Email could not be sent. Error: ' . $mail->ErrorInfo;
+            error_log(self::$lastError);
             return false;
         }
     }

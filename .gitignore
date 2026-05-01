@@ -27,3 +27,8 @@ dist-ssr
 backend/config/config.php
 backend/config/config.example.php
 backend/.env
+
+# Markdown — only README files belong in the repo
+**/*.md
+!README.md
+!**/README.md

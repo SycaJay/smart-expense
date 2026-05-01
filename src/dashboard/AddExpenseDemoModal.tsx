@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { createExpense } from '../api/client'
+import { createExpense, updateExpense } from '../api/client'
 import { formatMoney } from '../lib/format'
+
+type EditableExpense = {
+  expenseId: number
+  title: string
+  amount: number
+  category: string
+  subcategory?: string
+  splitMode: 'equal' | 'percentage'
+  splitScope: 'all' | 'category_only'
+  expenseDate: string
+  participantIds: number[]
+  participantWeights: Record<string, number>
+}
 
 type Props = {
   open: boolean
@@ -11,6 +24,7 @@ type Props = {
   currency: string
   categories: string[]
   members: { id: number; name: string; role: string }[]
+  expenseToEdit?: EditableExpense | null
 }
 
 export function AddExpenseDemoModal({
@@ -22,6 +36,7 @@ export function AddExpenseDemoModal({
   currency,
   categories,
   members,
+  expenseToEdit,
 }: Props) {
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState('')
@@ -31,6 +46,8 @@ export function AddExpenseDemoModal({
   const [subcategory, setSubcategory] = useState('')
   const [split, setSplit] = useState<'equal' | 'percentage'>('equal')
   const [splitScope, setSplitScope] = useState<'all' | 'category_only'>('all')
+  const [participantIds, setParticipantIds] = useState<number[]>([])
+  const [participantWeights, setParticipantWeights] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -43,14 +60,47 @@ export function AddExpenseDemoModal({
     setSubcategory('')
     setSplit('equal')
     setSplitScope('all')
+    const memberIds = members.map((m) => m.id)
+    setParticipantIds(memberIds)
+    const defaultWeight = memberIds.length > 0 ? String((100 / memberIds.length).toFixed(2)) : '0'
+    setParticipantWeights(
+      Object.fromEntries(memberIds.map((id) => [String(id), defaultWeight])),
+    )
     setIsSaving(false)
     setSaveError(null)
-  }, [categories])
+  }, [categories, members])
 
   const close = useCallback(() => {
     reset()
     onClose()
   }, [onClose, reset])
+
+  useEffect(() => {
+    if (!open) return
+    if (!expenseToEdit) {
+      reset()
+      return
+    }
+    setStep(1)
+    setTitle(expenseToEdit.title)
+    setAmount(String(expenseToEdit.amount))
+    setDate(expenseToEdit.expenseDate)
+    setCategory(expenseToEdit.category)
+    setSubcategory(expenseToEdit.subcategory ?? '')
+    setSplit(expenseToEdit.splitMode)
+    setSplitScope(expenseToEdit.splitScope)
+    setParticipantIds(expenseToEdit.participantIds)
+    setParticipantWeights(
+      Object.fromEntries(
+        expenseToEdit.participantIds.map((id) => [
+          String(id),
+          String(expenseToEdit.participantWeights[String(id)] ?? 1),
+        ]),
+      ),
+    )
+    setIsSaving(false)
+    setSaveError(null)
+  }, [expenseToEdit, open, reset])
 
   useEffect(() => {
     if (!open) return
@@ -76,6 +126,7 @@ export function AddExpenseDemoModal({
   const amountNumber = Number(amount)
   const canContinueStep1 =
     title.trim().length > 0 && Number.isFinite(amountNumber) && amountNumber > 0
+  const canContinueStep3 = participantIds.length > 0
 
   async function confirmSave() {
     if (!podId) {
@@ -85,9 +136,7 @@ export function AddExpenseDemoModal({
     setSaveError(null)
     setIsSaving(true)
     try {
-      await createExpense({
-        podId,
-        inviteCode,
+      const payload = {
         title: title.trim(),
         amount: amountNumber,
         category,
@@ -95,7 +144,23 @@ export function AddExpenseDemoModal({
         splitMode: split,
         splitScope,
         expenseDate: date,
-      })
+        participantIds,
+        participantWeights: Object.fromEntries(
+          participantIds.map((id) => [String(id), Number(participantWeights[String(id)] ?? 0)]),
+        ),
+      }
+      if (expenseToEdit) {
+        await updateExpense({
+          expenseId: expenseToEdit.expenseId,
+          ...payload,
+        })
+      } else {
+        await createExpense({
+          podId,
+          inviteCode,
+          ...payload,
+        })
+      }
       onSaved()
       setStep(5)
     } catch (err: unknown) {
@@ -118,7 +183,7 @@ export function AddExpenseDemoModal({
       <div className="addexp-modal__backdrop" onClick={close} aria-hidden />
       <div className="addexp-modal__card">
         <div className="addexp-modal__head">
-          <h2 id="addexp-title">Add bill</h2>
+          <h2 id="addexp-title">{expenseToEdit ? 'Edit bill' : 'Add bill'}</h2>
           <p id="addexp-step" className="addexp-modal__step" aria-live="polite">
             Step {step} of 5 · {members.length} member
             {members.length === 1 ? '' : 's'}
@@ -239,6 +304,55 @@ export function AddExpenseDemoModal({
                 Percentage
               </label>
             </fieldset>
+            <p id="participants-help" className="addexp-modal__hint">
+              Select participants for this bill.
+            </p>
+            <fieldset className="segmented addexp-seg" aria-describedby="participants-help">
+              <legend className="sr-only">Participants</legend>
+              {members.map((member) => {
+                const checked = participantIds.includes(member.id)
+                return (
+                  <label key={member.id} className="segmented__item">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        setParticipantIds((prev) =>
+                          checked ? prev.filter((id) => id !== member.id) : [...prev, member.id],
+                        )
+                      }}
+                    />
+                    {member.name}
+                  </label>
+                )
+              })}
+            </fieldset>
+            {split === 'percentage' && (
+              <>
+                <p id="weights-help" className="addexp-modal__hint">
+                  Enter participant percentages.
+                </p>
+                <div className="addexp-modal__confirm" aria-describedby="weights-help">
+                  {members
+                    .filter((member) => participantIds.includes(member.id))
+                    .map((member) => (
+                      <label key={member.id} className="podwiz__field">
+                        <span>{member.name} (%)</span>
+                        <input
+                          inputMode="decimal"
+                          value={participantWeights[String(member.id)] ?? ''}
+                          onChange={(e) =>
+                            setParticipantWeights((prev) => ({
+                              ...prev,
+                              [String(member.id)]: e.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    ))}
+                </div>
+              </>
+            )}
             <p id="scope-help" className="addexp-modal__hint">
               Should this split rule apply to all categories or only this category?
             </p>
@@ -275,6 +389,7 @@ export function AddExpenseDemoModal({
                 type="button"
                 className="podwiz__btn podwiz__btn--primary"
                 onClick={() => setStep(4)}
+                disabled={!canContinueStep3}
               >
                 Review
               </button>
@@ -299,6 +414,13 @@ export function AddExpenseDemoModal({
               <li>
                 <strong>Split:</strong>{' '}
                 {split === 'equal' ? 'Equal split' : 'Percentage split'}
+              </li>
+              <li>
+                <strong>Participants:</strong>{' '}
+                {members
+                  .filter((member) => participantIds.includes(member.id))
+                  .map((member) => member.name)
+                  .join(', ') || 'None'}
               </li>
               <li>
                 <strong>Rule scope:</strong>{' '}
@@ -328,7 +450,7 @@ export function AddExpenseDemoModal({
                 onClick={confirmSave}
                 disabled={isSaving}
               >
-                {isSaving ? 'Saving...' : 'Confirm bill'}
+                {isSaving ? 'Saving...' : expenseToEdit ? 'Save changes' : 'Confirm bill'}
               </button>
             </div>
           </div>
@@ -336,7 +458,7 @@ export function AddExpenseDemoModal({
 
         {step === 5 && (
           <div className="addexp-modal__body">
-            <p className="addexp-modal__done">Bill saved</p>
+            <p className="addexp-modal__done">{expenseToEdit ? 'Bill updated' : 'Bill saved'}</p>
             <ul className="addexp-modal__confirm">
               <li>
                 <strong>{title.trim() || 'New bill'}</strong> ·{' '}

@@ -12,7 +12,6 @@ export interface ExpenseItem {
   splitMode: SplitMode
   paidById: string
   participantIds: string[]
-  /** Per-member weights when splitMode === 'weighted' */
   weights: Record<string, number>
   date: string
 }

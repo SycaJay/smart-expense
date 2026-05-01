@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-/**
- * GET /api/pods — list pods (requires `pods` table from project root smart_expense.sql)
- */
+// GET /api/pods
 Http::requireAuthUser();
 
 try {
@@ -14,6 +12,7 @@ try {
             p.pod_id,
             p.pod_name,
             p.pod_type,
+            p.pod_status,
             p.invite_code,
             p.currency,
             p.default_split_method,

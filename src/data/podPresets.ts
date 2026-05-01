@@ -5,7 +5,6 @@ export type DefaultSplitMethod = 'equal' | 'weighted'
 export interface PodCategoryTemplate {
   id: string
   label: string
-  /** Shown on the main Pod dashboard by default */
   dashboardDefault: boolean
 }
 

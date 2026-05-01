@@ -10,7 +10,6 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
 
-/** Split one expense across participants (equal or weighted). */
 export function computeShares(expense: ExpenseItem): Record<string, number> {
   const { amount, splitMode, participantIds, weights } = expense
   const shares: Record<string, number> = {}
@@ -61,7 +60,6 @@ function fixRoundingDrift(
   }
 }
 
-/** Net balance: positive = owed to you, negative = you owe. */
 export function balancesFromExpenses(
   members: Member[],
   expenses: ExpenseItem[],
@@ -79,7 +77,6 @@ export function balancesFromExpenses(
   return bal
 }
 
-/** Greedy min-cash-flow: minimize number of payments to settle. */
 export function minimizeTransfers(balances: Record<string, number>): Transfer[] {
   const eps = 0.005
   const creditors: { id: string; v: number }[] = []
