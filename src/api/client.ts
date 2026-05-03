@@ -1,13 +1,15 @@
 export type HealthResponse = { ok: boolean; service?: string; time?: string }
 export type AuthUser = {
   id: number
-  fullName: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
 }
 
 export type SignupInput = {
-  fullName: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
   password: string
@@ -18,7 +20,8 @@ export type SignupResponse = {
   message?: string
   data?: {
     id: number
-    fullName: string
+    firstName: string
+    lastName: string
     email: string
     phone: string
   }
@@ -34,7 +37,8 @@ export type LoginResponse = {
   message?: string
   data?: {
     id: number
-    fullName: string
+    firstName: string
+    lastName: string
     email: string
     phone: string
   }

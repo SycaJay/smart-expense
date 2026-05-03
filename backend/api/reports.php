@@ -254,7 +254,10 @@ try {
     }
 
     $stmt = $pdo->prepare(
-        'SELECT pr.paid_at, payer.full_name AS payer, receiver.full_name AS receiver, pr.amount
+        'SELECT pr.paid_at,
+            TRIM(CONCAT_WS(\' \', NULLIF(TRIM(payer.first_name), \'\'), NULLIF(TRIM(payer.last_name), \'\'))) AS payer,
+            TRIM(CONCAT_WS(\' \', NULLIF(TRIM(receiver.first_name), \'\'), NULLIF(TRIM(receiver.last_name), \'\'))) AS receiver,
+            pr.amount
          FROM payment_records pr
          INNER JOIN settlement_transfers st ON st.transfer_id = pr.transfer_id
          INNER JOIN settlement_plans sp ON sp.settlement_plan_id = st.settlement_plan_id

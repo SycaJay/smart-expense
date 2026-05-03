@@ -27,7 +27,7 @@ if ($email === '' || $password === '') {
 try {
     $pdo = Database::pdo();
     $stmt = $pdo->prepare(
-        'SELECT user_id, full_name, email, phone, password_hash FROM users WHERE email = :email LIMIT 1'
+        'SELECT user_id, first_name, last_name, email, phone, password_hash FROM users WHERE email = :email LIMIT 1'
     );
     $stmt->execute([':email' => $email]);
     $row = $stmt->fetch();
@@ -40,7 +40,8 @@ try {
     session_regenerate_id(true);
     $_SESSION['auth_user'] = [
         'id' => (int) $row['user_id'],
-        'fullName' => (string) $row['full_name'],
+        'firstName' => (string) $row['first_name'],
+        'lastName' => (string) $row['last_name'],
         'email' => (string) $row['email'],
         'phone' => (string) $row['phone'],
     ];

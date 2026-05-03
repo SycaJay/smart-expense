@@ -7,18 +7,13 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-CREATE DATABASE IF NOT EXISTS `smart_expense`
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `smart_expense`;
-
 -- -----------------------------------------------------------------------------
 -- Registered accounts (login identity)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `full_name` VARCHAR(120) NOT NULL,
+  `first_name` VARCHAR(64) NOT NULL,
+  `last_name` VARCHAR(64) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `phone` VARCHAR(32) NULL,
   `password_hash` VARCHAR(255) NOT NULL,

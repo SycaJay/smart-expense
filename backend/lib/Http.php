@@ -31,7 +31,8 @@ final class Http
 
         return [
             'id' => (int) ($raw['id'] ?? 0),
-            'fullName' => (string) ($raw['fullName'] ?? ''),
+            'firstName' => (string) ($raw['firstName'] ?? ''),
+            'lastName' => (string) ($raw['lastName'] ?? ''),
             'email' => (string) ($raw['email'] ?? ''),
             'phone' => (string) ($raw['phone'] ?? ''),
         ];

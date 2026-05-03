@@ -211,7 +211,7 @@ try {
     $currency = is_array($podRow) ? strtoupper((string) $podRow['currency']) : 'USD';
 
     $membersEmailStmt = $pdo->prepare(
-        'SELECT u.user_id, u.full_name, u.email
+        'SELECT u.user_id, u.first_name, u.last_name, u.email
          FROM pod_members pm
          INNER JOIN users u ON u.user_id = pm.user_id
          WHERE pm.pod_id = :pod_id'
@@ -223,12 +223,18 @@ try {
 
     $amountLabel = number_format($amount, 2);
     $expenseDateLabel = $expenseDate;
-    $paidByName = (string) $authUser['fullName'];
+    $paidByName = UserDisplay::format(
+        (string) $authUser['firstName'],
+        (string) $authUser['lastName']
+    );
     $subject = 'New bill added in ' . $podName;
     foreach ($memberContacts as $contact) {
         $recipientId = (int) ($contact['user_id'] ?? 0);
         $recipientEmail = strtolower(trim((string) ($contact['email'] ?? '')));
-        $recipientName = (string) ($contact['full_name'] ?? 'Member');
+        $recipientName = UserDisplay::fromUserRow($contact);
+        if ($recipientName === '') {
+            $recipientName = 'Member';
+        }
 
         if (!filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
             continue;

@@ -63,7 +63,10 @@ try {
             'ok' => true,
             'data' => [
                 'pod' => null,
-                'viewerName' => (string) $authUser['fullName'],
+                'viewerName' => UserDisplay::format(
+                    (string) $authUser['firstName'],
+                    (string) $authUser['lastName']
+                ),
                 'viewerId' => $viewerId,
                 'members' => [],
                 'categories' => [],
@@ -85,7 +88,7 @@ try {
     $currency = (string) $pod['currency'];
 
     $membersStmt = $pdo->prepare(
-        'SELECT pm.user_id, pm.member_role, u.full_name
+        'SELECT pm.user_id, pm.member_role, u.first_name, u.last_name
          FROM pod_members pm
          INNER JOIN users u ON u.user_id = pm.user_id
          WHERE pm.pod_id = :pod_id
@@ -101,7 +104,7 @@ try {
     $memberIds = [];
     foreach ($memberRows as $row) {
         $id = (int) $row['user_id'];
-        $name = (string) $row['full_name'];
+        $name = UserDisplay::fromUserRow($row);
         $members[] = [
             'id' => $id,
             'name' => $name,
@@ -114,11 +117,17 @@ try {
     }
     if (!in_array($viewerId, $memberIds, true)) {
         $memberIds[] = $viewerId;
-        $memberLabel[(string) $viewerId] = (string) $authUser['fullName'];
+        $memberLabel[(string) $viewerId] = UserDisplay::format(
+            (string) $authUser['firstName'],
+            (string) $authUser['lastName']
+        );
         $netBalances[(string) $viewerId] = 0.0;
         $members[] = [
             'id' => $viewerId,
-            'name' => (string) $authUser['fullName'],
+            'name' => UserDisplay::format(
+                (string) $authUser['firstName'],
+                (string) $authUser['lastName']
+            ),
             'role' => 'member',
         ];
         $memberRoles[$viewerId] = 'member';
@@ -174,8 +183,8 @@ try {
             e.paid_by_user_id,
             e.created_by_user_id,
             cp.category_label,
-            payer.full_name AS paid_by_name,
-            creator.full_name AS added_by_name
+            TRIM(CONCAT_WS(\' \', NULLIF(TRIM(payer.first_name), \'\'), NULLIF(TRIM(payer.last_name), \'\'))) AS paid_by_name,
+            TRIM(CONCAT_WS(\' \', NULLIF(TRIM(creator.first_name), \'\'), NULLIF(TRIM(creator.last_name), \'\'))) AS added_by_name
          FROM expenses e
          LEFT JOIN pod_categories cp ON cp.pod_category_id = e.pod_category_id
          INNER JOIN users payer ON payer.user_id = e.paid_by_user_id
@@ -315,8 +324,8 @@ try {
             pr.payment_id,
             pr.paid_at,
             pr.amount,
-            payer.full_name AS payer_name,
-            receiver.full_name AS receiver_name
+            TRIM(CONCAT_WS(\' \', NULLIF(TRIM(payer.first_name), \'\'), NULLIF(TRIM(payer.last_name), \'\'))) AS payer_name,
+            TRIM(CONCAT_WS(\' \', NULLIF(TRIM(receiver.first_name), \'\'), NULLIF(TRIM(receiver.last_name), \'\'))) AS receiver_name
          FROM payment_records pr
          INNER JOIN settlement_transfers st ON st.transfer_id = pr.transfer_id
          INNER JOIN settlement_plans sp ON sp.settlement_plan_id = st.settlement_plan_id
@@ -418,7 +427,10 @@ try {
                 'defaultSplitMethod' => (string) $pod['default_split_method'],
                 'isArchived' => (string) $pod['pod_status'] === 'archived',
             ],
-            'viewerName' => (string) $authUser['fullName'],
+            'viewerName' => UserDisplay::format(
+                (string) $authUser['firstName'],
+                (string) $authUser['lastName']
+            ),
             'viewerId' => $viewerId,
             'members' => $members,
             'categories' => $orderedCategories,

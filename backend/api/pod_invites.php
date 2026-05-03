@@ -92,7 +92,10 @@ try {
 
     $podName = (string) $access['pod_name'];
     $inviteCodeFinal = (string) $access['invite_code'];
-    $adminName = (string) $authUser['fullName'];
+    $adminName = UserDisplay::format(
+        (string) $authUser['firstName'],
+        (string) $authUser['lastName']
+    );
     $frontendBase = rtrim((string) getenv('FRONTEND_BASE_URL'), '/');
     $joinUrl = $frontendBase !== ''
         ? ($frontendBase . '/?invite=' . rawurlencode($inviteCodeFinal))

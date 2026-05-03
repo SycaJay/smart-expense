@@ -62,7 +62,7 @@ try {
     }
 
     $memberStmt = $pdo->prepare(
-        'SELECT pm.user_id, u.full_name, u.email
+        'SELECT pm.user_id, u.first_name, u.last_name, u.email
          FROM pod_members pm
          INNER JOIN users u ON u.user_id = pm.user_id
          WHERE pm.pod_id = :pod_id AND pm.user_id IN (:actor_id, :payer_id, :receiver_id)'
@@ -96,9 +96,9 @@ try {
         return;
     }
 
-    $actorName = (string) $actor['full_name'];
-    $payerName = (string) $payer['full_name'];
-    $receiverName = (string) $receiver['full_name'];
+    $actorName = UserDisplay::fromUserRow($actor);
+    $payerName = UserDisplay::fromUserRow($payer);
+    $receiverName = UserDisplay::fromUserRow($receiver);
     $receiverEmail = strtolower(trim((string) $receiver['email']));
     $payerEmail = strtolower(trim((string) $payer['email']));
     $amountLabel = number_format($amount, 2);

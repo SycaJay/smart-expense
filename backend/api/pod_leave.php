@@ -65,7 +65,7 @@ SQL;
     $pdo->exec($createNoticesTable);
 
     $selfStmt = $pdo->prepare(
-        'SELECT pm.member_role, u.full_name, u.email
+        'SELECT pm.member_role, u.first_name, u.last_name, u.email
          FROM pod_members pm
          INNER JOIN users u ON u.user_id = pm.user_id
          WHERE pm.pod_id = :pod_id AND pm.user_id = :user_id
@@ -79,7 +79,10 @@ SQL;
         return;
     }
 
-    $leaveUserName = (string) ($self['full_name'] ?? 'A member');
+    $leaveUserName = UserDisplay::fromUserRow($self);
+    if ($leaveUserName === '') {
+        $leaveUserName = 'A member';
+    }
     $leaveUserEmail = strtolower(trim((string) ($self['email'] ?? '')));
 
     $podStmt = $pdo->prepare(
@@ -133,7 +136,7 @@ SQL;
         $podDeleted = true;
     } else {
         $remainingMembersStmt = $pdo->prepare(
-            'SELECT u.user_id, u.full_name, u.email
+            'SELECT u.user_id, u.first_name, u.last_name, u.email
              FROM pod_members pm
              INNER JOIN users u ON u.user_id = pm.user_id
              WHERE pm.pod_id = :pod_id'
@@ -204,7 +207,10 @@ SQL;
         $subject = $leaveUserName . ' has left ' . $podName;
         foreach ($remainingMembers as $member) {
             $recipientEmail = strtolower(trim((string) ($member['email'] ?? '')));
-            $recipientName = (string) ($member['full_name'] ?? 'Member');
+            $recipientName = UserDisplay::fromUserRow($member);
+            if ($recipientName === '') {
+                $recipientName = 'Member';
+            }
             if (!filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
                 continue;
             }

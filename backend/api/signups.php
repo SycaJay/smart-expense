@@ -16,13 +16,14 @@ try {
     return;
 }
 
-$fullName = trim((string) ($input['fullName'] ?? ''));
+$firstName = trim((string) ($input['firstName'] ?? ''));
+$lastName = trim((string) ($input['lastName'] ?? ''));
 $email = trim((string) ($input['email'] ?? ''));
 $phone = trim((string) ($input['phone'] ?? ''));
 $password = (string) ($input['password'] ?? '');
 
-if ($fullName === '' || $email === '' || $phone === '' || $password === '') {
-    Http::json(['error' => 'fullName, email, phone, and password are required'], 422);
+if ($firstName === '' || $email === '' || $phone === '' || $password === '') {
+    Http::json(['error' => 'firstName, email, phone, and password are required'], 422);
     return;
 }
 
@@ -54,10 +55,11 @@ try {
     }
 
     $insert = $pdo->prepare(
-        'INSERT INTO users (full_name, email, phone, password_hash) VALUES (:full_name, :email, :phone, :password_hash)'
+        'INSERT INTO users (first_name, last_name, email, phone, password_hash) VALUES (:first_name, :last_name, :email, :phone, :password_hash)'
     );
     $insert->execute([
-        ':full_name' => $fullName,
+        ':first_name' => $firstName,
+        ':last_name' => $lastName,
         ':email' => $emailLower,
         ':phone' => $phone,
         ':password_hash' => $passwordHash,
@@ -70,7 +72,8 @@ try {
         'message' => 'Account created',
         'data' => [
             'id' => $userId,
-            'fullName' => $fullName,
+            'firstName' => $firstName,
+            'lastName' => $lastName,
             'email' => $emailLower,
             'phone' => $phone,
         ],

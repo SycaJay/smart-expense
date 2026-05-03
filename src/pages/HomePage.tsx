@@ -203,12 +203,13 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
                   e.preventDefault()
                   const form = e.currentTarget
                   const fd = new FormData(form)
-                  const fullName = String(fd.get('fullName') ?? '').trim()
+                  const firstName = String(fd.get('firstName') ?? '').trim()
+                  const lastName = String(fd.get('lastName') ?? '').trim()
                   const email = String(fd.get('email') ?? '').trim()
                   const phone = String(fd.get('phone') ?? '').trim()
                   const password = String(fd.get('password') ?? '')
 
-                  saveSignup({ fullName, email, phone, password })
+                  saveSignup({ firstName, lastName, email, phone, password })
                     .then(() => {
                       setAuthError(null)
                       form.reset()
@@ -224,8 +225,21 @@ export default function HomePage({ onAuthenticated }: HomePageProps) {
                 }}
               >
                 <label className="home__field">
-                  <span>Full name</span>
-                  <input name="fullName" type="text" autoComplete="name" required />
+                  <span>First name</span>
+                  <input
+                    name="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                  />
+                </label>
+                <label className="home__field">
+                  <span>Last name</span>
+                  <input
+                    name="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                  />
                 </label>
                 <label className="home__field">
                   <span>Email</span>
