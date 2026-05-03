@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { createExpense, updateExpense } from '../api/client'
 import { formatMoney } from '../lib/format'
 
@@ -75,6 +76,9 @@ export function AddExpenseDemoModal({
     onClose()
   }, [onClose, reset])
 
+  // Initialise only when the dialog opens or the edit target changes — not when
+  // `reset`’s identity changes (it depends on `members` / `categories`, which the
+  // dashboard poll refreshes and would otherwise wipe the form mid-step).
   useEffect(() => {
     if (!open) return
     if (!expenseToEdit) {
@@ -100,7 +104,8 @@ export function AddExpenseDemoModal({
     )
     setIsSaving(false)
     setSaveError(null)
-  }, [expenseToEdit, open, reset])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset() uses current members/categories; omitting it avoids re-init on every poll tick
+  }, [open, expenseToEdit])
 
   useEffect(() => {
     if (!open) return
@@ -120,8 +125,6 @@ export function AddExpenseDemoModal({
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [close, open])
-
-  if (!open) return null
 
   const amountNumber = Number(amount)
   const canContinueStep1 =
@@ -172,7 +175,9 @@ export function AddExpenseDemoModal({
     }
   }
 
-  return (
+  if (!open) return null
+
+  const modal = (
     <div
       className="addexp-modal"
       role="dialog"
@@ -479,4 +484,6 @@ export function AddExpenseDemoModal({
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }

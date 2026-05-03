@@ -7,11 +7,19 @@ export type AuthUser = {
   phone: string
 }
 
+export type CountryCallingCode = {
+  dial: string
+  name: string
+}
+
 export type SignupInput = {
   firstName: string
   lastName: string
   email: string
-  phone: string
+  /** Country calling code digits only (no +), e.g. "233" */
+  phoneDial: string
+  /** National number digits only */
+  phoneNational: string
   password: string
 }
 
@@ -248,6 +256,31 @@ export async function fetchHealth(): Promise<HealthResponse> {
   return res.json() as Promise<HealthResponse>
 }
 
+/** Used until GET /api/country-calling-codes succeeds */
+export const FALLBACK_CALLING_CODES: CountryCallingCode[] = [
+  { dial: '233', name: 'Ghana' },
+  { dial: '234', name: 'Nigeria' },
+  { dial: '1', name: 'United States / Canada' },
+  { dial: '44', name: 'United Kingdom' },
+  { dial: '254', name: 'Kenya' },
+  { dial: '27', name: 'South Africa' },
+]
+
+export async function fetchCountryCallingCodes(): Promise<CountryCallingCode[]> {
+  const res = await apiFetch('/api/country-calling-codes')
+  const data = (await res.json()) as {
+    ok?: boolean
+    data?: CountryCallingCode[]
+    error?: string
+  }
+  if (!res.ok) {
+    throw new Error(data.error || `Country codes failed (${res.status})`)
+  }
+  return Array.isArray(data.data) && data.data.length > 0
+    ? data.data
+    : FALLBACK_CALLING_CODES
+}
+
 export async function saveSignup(
   payload: SignupInput,
 ): Promise<SignupResponse> {
@@ -262,6 +295,55 @@ export async function saveSignup(
     throw new Error(data.error || `Signup save failed (${res.status})`)
   }
   return data
+}
+
+export async function requestPasswordReset(
+  email: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const res = await apiFetch('/api/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  const data = (await res.json()) as {
+    ok?: boolean
+    message?: string
+    error?: string
+    detail?: string
+  }
+  if (!res.ok) {
+    throw new Error(
+      data.detail
+        ? `${data.error ?? 'Request failed'}: ${data.detail}`
+        : data.error || `Request failed (${res.status})`,
+    )
+  }
+  return { ok: Boolean(data.ok), message: data.message }
+}
+
+export async function resetPasswordWithToken(
+  token: string,
+  password: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const res = await apiFetch('/api/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  })
+  const data = (await res.json()) as {
+    ok?: boolean
+    message?: string
+    error?: string
+    detail?: string
+  }
+  if (!res.ok) {
+    throw new Error(
+      data.detail
+        ? `${data.error ?? 'Request failed'}: ${data.detail}`
+        : data.error || `Request failed (${res.status})`,
+    )
+  }
+  return { ok: Boolean(data.ok), message: data.message }
 }
 
 export async function login(payload: LoginInput): Promise<LoginResponse> {

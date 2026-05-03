@@ -976,6 +976,39 @@
 .poddash {
   max-width: 1100px;
   margin: 0 auto;
+  /* Space so content isn’t hidden behind fixed Pod home dock */
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+.poddash__dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 35;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(
+    180deg,
+    rgba(7, 10, 18, 0) 0%,
+    rgba(7, 10, 18, 0.88) 28%,
+    #070a12 100%
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.poddash__dock-inner {
+  width: 100%;
+  max-width: 980px;
+  display: flex;
+  justify-content: center;
+}
+
+.poddash__dock .podwiz__btn {
+  min-width: min(100%, 280px);
 }
 
 .poddash__template-note {
@@ -1119,16 +1152,26 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.35);
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.92);
   resize: vertical;
   min-height: 96px;
   margin-bottom: 12px;
 }
 
-.poddash__footer-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+.poddash__textarea:disabled {
+  color: rgba(255, 255, 255, 0.35);
+  opacity: 0.75;
+}
+
+.poddash__textarea--short {
+  min-height: 72px;
+}
+
+.poddash__email-feedback {
+  margin: 12px 0 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(167, 243, 208, 0.95);
 }
 
 .poddash__placeholder {

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { sendPodInviteEmails } from '../api/client'
 import { GroupDashboardDemo } from '../dashboard/GroupDashboardDemo'
 import { getPreset } from '../data/podPresets'
 import type { CreatedPodPayload } from './CreatePodWizard'
@@ -18,9 +19,61 @@ type MemberProps = {
 
 type Props = AdminProps | MemberProps
 
+function PodHomeDock({ onPodMenu }: { onPodMenu: () => void }) {
+  return (
+    <div className="poddash__dock" role="navigation" aria-label="Pod home">
+      <div className="poddash__dock-inner">
+        <button type="button" className="podwiz__btn podwiz__btn--ghost" onClick={onPodMenu}>
+          ← Pod home menu
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function PodDashboard(props: Props) {
   const [copied, setCopied] = useState(false)
   const [emailDraft, setEmailDraft] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [emailSending, setEmailSending] = useState(false)
+  const [emailFeedback, setEmailFeedback] = useState<string | null>(null)
+
+  const adminInviteCode =
+    props.variant === 'admin' ? props.payload.code : ''
+
+  const sendInviteEmails = useCallback(async () => {
+    if (!adminInviteCode) return
+    const emails = emailDraft
+      .split(/[\n,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (emails.length === 0) {
+      setEmailFeedback('Add at least one email address.')
+      return
+    }
+    try {
+      setEmailSending(true)
+      setEmailFeedback(null)
+      const result = await sendPodInviteEmails({
+        inviteCode: adminInviteCode,
+        emails,
+        message: emailMessage.trim() || undefined,
+      })
+      const sent = result.data?.sent?.length ?? 0
+      const failed = result.data?.failed?.length ?? 0
+      const first = result.data?.failed?.[0]
+      setEmailFeedback(
+        failed > 0
+          ? `Sent ${sent}, ${failed} failed.${first ? ` (${first.email}: ${first.reason})` : ''}`
+          : `Sent ${sent} invite${sent === 1 ? '' : 's'}.`,
+      )
+      if (sent > 0) setEmailDraft('')
+    } catch (e) {
+      setEmailFeedback(e instanceof Error ? e.message : 'Could not send invites.')
+    } finally {
+      setEmailSending(false)
+    }
+  }, [adminInviteCode, emailDraft, emailMessage])
 
   const copyCode = useCallback(async (code: string) => {
     try {
@@ -50,13 +103,7 @@ export function PodDashboard(props: Props) {
           podName="Joined Pod"
           inviteCode={props.joinedCode}
         />
-        <button
-          type="button"
-          className="podwiz__btn podwiz__btn--ghost"
-          onClick={props.onPodMenu}
-        >
-          ← Pod home menu
-        </button>
+        <PodHomeDock onPodMenu={props.onPodMenu} />
       </section>
     )
   }
@@ -119,41 +166,48 @@ export function PodDashboard(props: Props) {
         </summary>
         <div className="poddash__email-body">
           <p className="poddash__email-lede">
-            Secondary path — add addresses and we’ll send a join link, Pod name,
-            and accept button once email is wired on the server.
+            We’ll email each address with your pod name, invite code, and an optional
+            note from you. Requires mail to be configured on the server.
           </p>
           <label className="podwiz__field">
-            <span>Roommate emails (comma or newline separated)</span>
+            <span>Email addresses (comma or one per line)</span>
             <textarea
               className="poddash__textarea"
               rows={4}
               value={emailDraft}
               onChange={(e) => setEmailDraft(e.target.value)}
-              placeholder="alex@example.com, sam@example.com"
-              disabled
-              title="Backend mailer not connected in this build"
+              placeholder={`alex@example.com\nsam@example.com`}
+              disabled={emailSending}
+            />
+          </label>
+          <label className="podwiz__field">
+            <span>Short message (optional)</span>
+            <textarea
+              className="poddash__textarea poddash__textarea--short"
+              rows={2}
+              value={emailMessage}
+              onChange={(e) => setEmailMessage(e.target.value)}
+              placeholder="Join our pod for shared bills."
+              disabled={emailSending}
             />
           </label>
           <button
             type="button"
-            className="podwiz__btn podwiz__btn--ghost"
-            disabled
-            title="Connect SMTP or provider on the server to enable sends"
+            className="podwiz__btn podwiz__btn--primary"
+            disabled={emailSending}
+            onClick={() => void sendInviteEmails()}
           >
-            Send invitations
+            {emailSending ? 'Sending…' : 'Send invitations'}
           </button>
+          {emailFeedback && (
+            <p className="poddash__email-feedback" role="status">
+              {emailFeedback}
+            </p>
+          )}
         </div>
       </details>
 
-      <div className="poddash__footer-actions">
-        <button
-          type="button"
-          className="podwiz__btn podwiz__btn--ghost"
-          onClick={onPodMenu}
-        >
-          ← Pod home menu
-        </button>
-      </div>
+      <PodHomeDock onPodMenu={onPodMenu} />
     </section>
   )
 }

@@ -19,12 +19,38 @@ try {
 $firstName = trim((string) ($input['firstName'] ?? ''));
 $lastName = trim((string) ($input['lastName'] ?? ''));
 $email = trim((string) ($input['email'] ?? ''));
-$phone = trim((string) ($input['phone'] ?? ''));
 $password = (string) ($input['password'] ?? '');
 
+$phoneDial = preg_replace('/\D+/', '', (string) ($input['phoneDial'] ?? ''));
+$phoneNational = preg_replace('/\D+/', '', (string) ($input['phoneNational'] ?? ''));
+$phoneLegacy = trim((string) ($input['phone'] ?? ''));
+
+$phone = '';
+if ($phoneDial !== '' && $phoneNational !== '') {
+    $phone = '+' . $phoneDial . $phoneNational;
+} elseif ($phoneLegacy !== '') {
+    $phone = $phoneLegacy;
+}
+
 if ($firstName === '' || $email === '' || $phone === '' || $password === '') {
-    Http::json(['error' => 'firstName, email, phone, and password are required'], 422);
+    Http::json(['error' => 'firstName, email, phone (country + number), and password are required'], 422);
     return;
+}
+
+if (strlen($phone) > 32) {
+    Http::json(['error' => 'Phone number is too long'], 422);
+    return;
+}
+
+if ($phoneDial !== '' && $phoneNational !== '') {
+    if (strlen($phoneDial) < 1 || strlen($phoneDial) > 4) {
+        Http::json(['error' => 'Invalid country calling code'], 422);
+        return;
+    }
+    if (strlen($phoneNational) < 5) {
+        Http::json(['error' => 'Enter your phone number (at least 5 digits)'], 422);
+        return;
+    }
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {

@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+server
 *.local
 
 # Editor directories and files
@@ -25,7 +26,6 @@ dist-ssr
 
 # PHP local config (do not commit)
 backend/config/config.php
-backend/config/config.example.php
 backend/.env
 
 # Markdown — only README files belong in the repo

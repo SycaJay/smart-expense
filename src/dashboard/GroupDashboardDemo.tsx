@@ -229,7 +229,8 @@ export function GroupDashboardDemo({
     <div className="gdemo">
       <div className="gdemo__banner">
         <span className="gdemo__banner-dot" aria-hidden />
-        Preview · balances, history, settle-up, settings
+        Balances, history &amp; settle-up — use <strong>Pod settings</strong> (top
+        right) to edit the pod name, default split, email invites, and members.
       </div>
 
       <nav className="gdemo__toolbar" aria-label="Pod actions">
@@ -237,7 +238,7 @@ export function GroupDashboardDemo({
         <div className="gdemo__toolbar-btns">
           <button
             type="button"
-            className="podwiz__btn podwiz__btn--ghost"
+            className="podwiz__btn podwiz__btn--primary gdemo__btn-settings"
             onClick={() => setOpenSettings(true)}
           >
             Pod settings

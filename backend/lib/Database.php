@@ -14,20 +14,29 @@ final class Database
 
         $configPath = dirname(__DIR__) . '/config/config.php';
         if (!is_file($configPath)) {
-            throw new \RuntimeException('Missing backend/config/config.php — copy from config.example.php');
+            throw new \RuntimeException('Missing backend/config/config.php — create it (see README.md).');
         }
 
-        /** @var array{db: array{host: string, port: int, name: string, user: string, pass: string, charset: string}} $cfg */
+        /** @var array{db: array{host: string, name: string, user: string, pass: string, charset: string, port?: int}} $cfg */
         $cfg = require $configPath;
         $db = $cfg['db'];
 
-        $dsn = sprintf(
-            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
-            $db['host'],
-            $db['port'],
-            $db['name'],
-            $db['charset']
-        );
+        if (isset($db['port']) && (int) $db['port'] > 0) {
+            $dsn = sprintf(
+                'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+                $db['host'],
+                (int) $db['port'],
+                $db['name'],
+                $db['charset']
+            );
+        } else {
+            $dsn = sprintf(
+                'mysql:host=%s;dbname=%s;charset=%s',
+                $db['host'],
+                $db['name'],
+                $db['charset']
+            );
+        }
 
         self::$pdo = new \PDO($dsn, $db['user'], $db['pass'], [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,

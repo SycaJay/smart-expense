@@ -21,9 +21,12 @@ $routes = [
         '/api/pod-dashboard' => dirname(__DIR__) . '/api/pod_dashboard.php',
         '/api/reports' => dirname(__DIR__) . '/api/reports.php',
         '/api/settlement-plans' => dirname(__DIR__) . '/api/settlement_plans.php',
+        '/api/country-calling-codes' => dirname(__DIR__) . '/api/country_calling_codes.php',
     ],
     'POST' => [
         '/api/signups' => dirname(__DIR__) . '/api/signups.php',
+        '/api/forgot-password' => dirname(__DIR__) . '/api/forgot_password.php',
+        '/api/reset-password' => dirname(__DIR__) . '/api/reset_password.php',
         '/api/login' => dirname(__DIR__) . '/api/login.php',
         '/api/logout' => dirname(__DIR__) . '/api/logout.php',
         '/api/expenses' => dirname(__DIR__) . '/api/expenses.php',

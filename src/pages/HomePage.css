@@ -459,6 +459,39 @@
   box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
 }
 
+.home__field select {
+  font: inherit;
+  padding: 11px 10px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: #f4f7ff;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home__field select:focus {
+  border-color: rgba(94, 234, 212, 0.55);
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
+}
+
+.home__phone-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.home__phone-dial {
+  flex: 0 1 min(52%, 220px);
+  min-width: 0;
+}
+
+.home__phone-national {
+  flex: 1;
+  min-width: 0;
+}
+
 .home__auth-error {
   margin: 0;
   padding: 10px 12px;
@@ -468,6 +501,105 @@
   color: #fecaca;
   background: rgba(251, 113, 133, 0.12);
   border: 1px solid rgba(251, 113, 133, 0.35);
+}
+
+.home__welcome-toast {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  text-align: center;
+  color: #042f2e;
+  background: linear-gradient(135deg, rgba(94, 234, 212, 0.95), rgba(45, 212, 191, 0.88));
+  border: 1px solid rgba(45, 212, 191, 0.5);
+  box-shadow: 0 12px 32px rgba(45, 212, 191, 0.2);
+  animation: home-toast-in 0.35s ease both;
+}
+
+@keyframes home-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home__password-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home__password-wrap:focus-within {
+  border-color: rgba(94, 234, 212, 0.55);
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
+}
+
+.home__password-wrap input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home__password-wrap input:focus {
+  border: none;
+  box-shadow: none;
+}
+
+.home__password-toggle {
+  flex-shrink: 0;
+  align-self: stretch;
+  padding: 0 12px;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(94, 234, 212, 0.95);
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.home__password-toggle:hover {
+  background: rgba(94, 234, 212, 0.12);
+  color: #ccfbf1;
+}
+
+.home__login-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 4px;
+}
+
+.home__link-btn {
+  border: none;
+  background: none;
+  padding: 6px 0;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: rgba(94, 234, 212, 0.95);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.home__link-btn:hover {
+  color: #ccfbf1;
 }
 
 .home__submit {

@@ -73,7 +73,11 @@ $corsOrigin = null;
 if (is_file($configPath)) {
     /** @var array{cors?: array{allow_origin?: string}} $app */
     $app = require $configPath;
-    $corsOrigin = $app['cors']['allow_origin'] ?? null;
+    $corsBlock = $app['cors'] ?? null;
+    if (is_array($corsBlock)) {
+        $raw = $corsBlock['allow_origin'] ?? null;
+        $corsOrigin = is_string($raw) && $raw !== '' ? $raw : null;
+    }
 }
 
 Http::applyCors($corsOrigin);

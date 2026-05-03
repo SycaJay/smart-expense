@@ -20,9 +20,24 @@ You need two processes: the PHP API and the Vite dev server. Vite proxies `/api`
 composer install
 ```
 
-Duplicate `backend/config/config.example.php` to `backend/config/config.php` and edit it.
+Create `backend/config/config.php` (not committed) with at least a `db` block, for example:
 
-Edit `backend/config/config.php` with your DB credentials, then:
+```php
+<?php
+return [
+    'db' => [
+        'host' => 'localhost',
+        'name' => 'your_database',
+        'user' => 'your_user',
+        'pass' => 'your_password',
+        'charset' => 'utf8mb4',
+    ],
+];
+```
+
+For **Vite** (`npm run dev`), add a `cors` block so the browser can call the API, for example `'cors' => ['allow_origin' => 'http://localhost:5173']`. Same-origin production can omit `cors`.
+
+Then:
 
 ```bash
 npm run php:dev
@@ -41,7 +56,7 @@ Open the URL Vite prints (usually `http://localhost:5173`). API calls hit `/api`
 
 ### Mail (optional locally)
 
-Copy `backend/.env.example` to `backend/.env` and set SMTP vars if you want invites and notifications to actually send. Without them, mail-related actions may fail quietly or return errors depending on the endpoint.
+Copy `backend/.env.example` to `backend/.env` and set SMTP vars if you want invites, **forgot-password emails**, and notifications to actually send. Set **`FRONTEND_BASE_URL`** to your live site origin (for example `https://yourdomain.com`) so reset links in email point at the SPA. Existing databases need the **`password_reset_tokens`** table from `migrate_password_reset_tokens.sql` (or reinstall from `smart_expense.sql`).
 
 ### Production build
 

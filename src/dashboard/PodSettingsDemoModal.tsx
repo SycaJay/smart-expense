@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   closePod,
   leavePod,
@@ -83,11 +84,9 @@ export function PodSettingsDemoModal({
     }
   }, [open, onClose])
 
-  if (!open) return null
-
   const handleSendInvites = async () => {
     const emails = inviteEmailsInput
-      .split(',')
+      .split(/[\n,]+/)
       .map((item) => item.trim())
       .filter(Boolean)
 
@@ -248,7 +247,9 @@ export function PodSettingsDemoModal({
     }
   }
 
-  return (
+  if (!open) return null
+
+  const modal = (
     <div
       className="pset-modal"
       role="dialog"
@@ -313,7 +314,7 @@ export function PodSettingsDemoModal({
             </p>
             <code className="pset-code">{inviteCode}</code>
             <label className="podwiz__field" style={{ marginTop: 12 }}>
-              <span>Invite emails (comma-separated)</span>
+              <span>Invite emails (comma or one per line)</span>
               <input
                 value={inviteEmailsInput}
                 onChange={(e) => setInviteEmailsInput(e.target.value)}
@@ -504,4 +505,6 @@ export function PodSettingsDemoModal({
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }
